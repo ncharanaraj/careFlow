@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Dashboard from "@/pages/Dashboard";
 import PlaceholderPage from "@/pages/PlaceholderPage";
+import Patients from "@/pages/Patients";
 
 function App() {
   return (
@@ -14,10 +15,7 @@ function App() {
           <Route
             path="/patients"
             element={
-              <PlaceholderPage
-                title="Patients"
-                description="Manage and view patient information."
-              />
+              <Patients />
             }
           />
 
