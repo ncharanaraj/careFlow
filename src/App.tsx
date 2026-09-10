@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Dashboard from "@/pages/Dashboard";
+import PlaceholderPage from "@/pages/PlaceholderPage";
 
 function App() {
   return (
@@ -9,9 +10,88 @@ function App() {
       <Routes>
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+
+          <Route
+            path="/patients"
+            element={
+              <PlaceholderPage
+                title="Patients"
+                description="Manage and view patient information."
+              />
+            }
+          />
+
+          <Route
+            path="/appointments"
+            element={
+              <PlaceholderPage
+                title="Appointments"
+                description="Manage hospital appointments."
+              />
+            }
+          />
+
+          <Route
+            path="/prescriptions"
+            element={
+              <PlaceholderPage
+                title="Prescriptions"
+                description="Manage patient prescriptions."
+              />
+            }
+          />
+
+          <Route
+            path="/lab-reports"
+            element={
+              <PlaceholderPage
+                title="Lab Reports"
+                description="View and manage laboratory reports."
+              />
+            }
+          />
+
+          <Route
+            path="/doctors"
+            element={
+              <PlaceholderPage
+                title="Doctors"
+                description="Manage doctors and their schedules."
+              />
+            }
+          />
+
+          <Route
+            path="/departments"
+            element={
+              <PlaceholderPage
+                title="Departments"
+                description="Manage hospital departments."
+              />
+            }
+          />
+
+          <Route
+            path="/staff"
+            element={
+              <PlaceholderPage
+                title="Staff"
+                description="Manage hospital staff."
+              />
+            }
+          />
+
+          <Route
+            path="/settings"
+            element={
+              <PlaceholderPage
+                title="Settings"
+                description="Manage your CareFlow settings."
+              />
+            }
+          />
         </Route>
 
-        {/* Redirect "/" to dashboard */}
         <Route
           path="/"
           element={<Navigate to="/dashboard" replace />}
