@@ -14,13 +14,36 @@ import { useState, useEffect } from "react";
 import AddPatientDialog from "@/components/patients/AddPatientDialog";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store/store";
-import { fetchPatients, addPatient } from "@/store/patientsSlice";
+import {
+  fetchPatients,
+  addPatient,
+  editPatient,
+  removePatient,
+} from "@/store/patientsSlice";
+import PatientDetailsDialog from "@/components/patients/PatientDetailsDialog";
+import type { Patient } from "@/data/patients";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [addPatientOpen, setAddPatientOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [patientToEdit, setPatientToEdit] = useState<Patient | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const { patients, loading, error } = useSelector(
     (state: RootState) => state.patients,
@@ -73,6 +96,53 @@ export default function Patients() {
         createdAt: new Date().toISOString(),
       }),
     );
+  };
+
+  // Handle viewing patient details
+  const handleViewPatient = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setDetailsOpen(true);
+  };
+
+  // Handle editing a patient
+  const handleEditPatient = (patient: Patient) => {
+    setPatientToEdit(patient);
+    setEditOpen(true);
+  };
+
+  // Handle updating a patient
+  const handlePatientUpdated = async (data: {
+    name: string;
+    age: string;
+    gender: string;
+    phone: string;
+    bloodGroup: string;
+  }) => {
+    if (!patientToEdit) return;
+
+    await dispatch(
+      editPatient({
+        id: patientToEdit.id,
+        patient: {
+          name: data.name,
+          age: Number(data.age),
+          gender: data.gender as "Male" | "Female",
+          phone: data.phone,
+          bloodGroup: data.bloodGroup,
+          status: patientToEdit.status,
+          createdAt: patientToEdit.createdAt,
+        },
+      }),
+    );
+
+    setPatientToEdit(null);
+    setEditOpen(false);
+  };
+
+  // Handle deleting a patient
+  const handleDeletePatient = (patient: Patient) => {
+    setPatientToDelete(patient);
+    setDeleteOpen(true);
   };
 
   return (
@@ -189,16 +259,23 @@ export default function Patients() {
                               </DropdownMenuTrigger>
 
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  View patient
+                                <DropdownMenuItem
+                                  onClick={() => handleViewPatient(patient)}
+                                >
+                                  View
                                 </DropdownMenuItem>
 
-                                <DropdownMenuItem>
-                                  Edit patient
+                                <DropdownMenuItem
+                                  onClick={() => handleEditPatient(patient)}
+                                >
+                                  Edit
                                 </DropdownMenuItem>
 
-                                <DropdownMenuItem className="text-red-600">
-                                  Delete patient
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleDeletePatient(patient)}
+                                >
+                                  Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -261,6 +338,49 @@ export default function Patients() {
         onOpenChange={setAddPatientOpen}
         onPatientAdded={handlePatientAdded}
       />
+      <PatientDetailsDialog
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        patient={selectedPatient}
+      />
+      <AddPatientDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onPatientAdded={handlePatientUpdated}
+        patient={patientToEdit}
+      />
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Patient</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-medium text-slate-900">
+                {patientToDelete?.name}
+              </span>
+              ? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={async () => {
+                if (!patientToDelete) return;
+
+                await dispatch(removePatient(patientToDelete.id));
+
+                setPatientToDelete(null);
+                setDeleteOpen(false);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

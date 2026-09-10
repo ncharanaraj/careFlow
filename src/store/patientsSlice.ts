@@ -1,6 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { Patient } from "@/data/patients";
-import { getPatients, createPatient } from "@/services/patientService";
+import {
+  getPatients,
+  createPatient,
+  updatePatient,
+  deletePatient,
+} from "@/services/patientService";
 
 interface PatientsState {
   patients: Patient[];
@@ -25,6 +30,26 @@ export const addPatient = createAsyncThunk(
   "patients/addPatient",
   async (patient: Omit<Patient, "id">) => {
     return await createPatient(patient);
+  },
+);
+
+export const editPatient = createAsyncThunk(
+  "patients/editPatient",
+  async ({
+    id,
+    patient,
+  }: {
+    id: number | string;
+    patient: Omit<Patient, "id">;
+  }) => {
+    return await updatePatient(id, patient);
+  },
+);
+
+export const removePatient = createAsyncThunk(
+  "patients/removePatient",
+  async (id: number | string) => {
+    return await deletePatient(id);
   },
 );
 
@@ -55,6 +80,22 @@ const patientsSlice = createSlice({
 
       .addCase(addPatient.fulfilled, (state, action) => {
         state.patients.unshift(action.payload);
+      })
+
+      .addCase(editPatient.fulfilled, (state, action) => {
+        const index = state.patients.findIndex(
+          (patient) => patient.id === action.payload.id,
+        );
+
+        if (index !== -1) {
+          state.patients[index] = action.payload;
+        }
+      })
+
+      .addCase(removePatient.fulfilled, (state, action) => {
+        state.patients = state.patients.filter(
+          (patient) => patient.id !== action.payload,
+        );
       });
   },
 });

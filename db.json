@@ -31,14 +31,14 @@
       "createdAt": "2026-09-08T09:00:00.000Z"
     },
     {
-      "id": "4",
       "name": "Sneha Rao",
-      "age": 36,
+      "age": 55,
       "gender": "Female",
       "phone": "9876543213",
-      "bloodGroup": "AB+",
+      "bloodGroup": "B-",
       "status": "Active",
-      "createdAt": "2026-09-07T09:00:00.000Z"
+      "createdAt": "2026-09-07T09:00:00.000Z",
+      "id": "4"
     },
     {
       "id": "5",
@@ -72,13 +72,23 @@
     },
     {
       "name": "Anil Kumar",
-      "age": 35,
+      "age": 40,
       "gender": "Male",
       "phone": "7899240475",
       "bloodGroup": "B-",
       "status": "Active",
-      "createdAt": "2026-09-10T12:05:19.582Z",
-      "id": "4VuPfgcvah8"
+      "createdAt": "2026-09-10T12:33:16.181Z",
+      "id": "OgemI4Z7bGw"
+    },
+    {
+      "name": "Swati",
+      "age": 25,
+      "gender": "Female",
+      "phone": "9876543113",
+      "bloodGroup": "AB+",
+      "status": "Active",
+      "createdAt": "2026-09-10T12:37:19.333Z",
+      "id": "9nX-I2WxFJc"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

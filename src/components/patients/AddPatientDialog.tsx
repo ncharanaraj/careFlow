@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
   Dialog,
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Patient } from "@/data/patients";
 
 const patientSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
@@ -43,12 +45,14 @@ interface AddPatientDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onPatientAdded: (patient: PatientFormData) => void;
+  patient?: Patient | null;
 }
 
 export default function AddPatientDialog({
   open,
   onOpenChange,
   onPatientAdded,
+  patient,
 }: AddPatientDialogProps) {
   const {
     register,
@@ -78,6 +82,28 @@ export default function AddPatientDialog({
     name: "bloodGroup",
   });
 
+  useEffect(() => {
+    if (open && patient) {
+      reset({
+        name: patient.name,
+        age: String(patient.age),
+        gender: patient.gender,
+        phone: patient.phone,
+        bloodGroup: patient.bloodGroup,
+      });
+    }
+
+    if (open && !patient) {
+      reset({
+        name: "",
+        age: "",
+        gender: "",
+        phone: "",
+        bloodGroup: "",
+      });
+    }
+  }, [open, patient, reset]);
+
   const onSubmit = (data: PatientFormData) => {
     onPatientAdded(data);
 
@@ -89,9 +115,11 @@ export default function AddPatientDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Patient</DialogTitle>
+          <DialogTitle>{patient ? "Edit Patient" : "Add Patient"}</DialogTitle>
           <DialogDescription>
-            Enter the patient's information below.
+            {patient
+              ? "Update the patient's information below."
+              : "Enter the patient's information below."}
           </DialogDescription>
         </DialogHeader>
 
@@ -204,7 +232,9 @@ export default function AddPatientDialog({
               Cancel
             </Button>
 
-            <Button type="submit">Add Patient</Button>
+            <Button type="submit">
+              {patient ? "Save Changes" : "Add Patient"}
+            </Button>
           </div>
         </form>
       </DialogContent>

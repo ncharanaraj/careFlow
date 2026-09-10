@@ -29,3 +29,36 @@ export const createPatient = async (
 
   return response.json();
 };
+
+export const updatePatient = async (
+  id: number | string,
+  patient: Omit<Patient, "id">,
+): Promise<Patient> => {
+  const response = await fetch(`${API_URL}/patients/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(patient),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update patient");
+  }
+
+  return response.json();
+};
+
+export const deletePatient = async (
+  id: number | string,
+): Promise<number | string> => {
+  const response = await fetch(`${API_URL}/patients/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete patient");
+  }
+
+  return id;
+};
