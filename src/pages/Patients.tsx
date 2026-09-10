@@ -10,18 +10,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { patients as initialPatients, type Patient } from "@/data/patients";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddPatientDialog from "@/components/patients/AddPatientDialog";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "@/store/store";
+import { fetchPatients, addPatient } from "@/store/patientsSlice";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [addPatientOpen, setAddPatientOpen] = useState(false);
-  const [patientList, setPatientList] = useState<Patient[]>(initialPatients);
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { patients, loading, error } = useSelector(
+    (state: RootState) => state.patients,
+  );
+
+  useEffect(() => {
+    dispatch(fetchPatients());
+  }, [dispatch]);
 
   // Filter patients based on search term
-  const filteredPatients = patientList.filter((patient) => {
+  const filteredPatients = patients.filter((patient) => {
     const searchTerm = search.trim().toLowerCase();
 
     return (
@@ -45,24 +55,24 @@ export default function Patients() {
   );
 
   // Handle adding a new patient
-  const handlePatientAdded = (data: {
+  const handlePatientAdded = async (data: {
     name: string;
     age: string;
     gender: string;
     phone: string;
     bloodGroup: string;
   }) => {
-    const newPatient: Patient = {
-      id: Date.now(),
-      name: data.name,
-      age: Number(data.age),
-      gender: data.gender as Patient["gender"],
-      phone: data.phone,
-      bloodGroup: data.bloodGroup,
-      status: "Active",
-    };
-
-    setPatientList((currentPatients) => [newPatient, ...currentPatients]);
+    await dispatch(
+      addPatient({
+        name: data.name,
+        age: Number(data.age),
+        gender: data.gender as "Male" | "Female",
+        phone: data.phone,
+        bloodGroup: data.bloodGroup,
+        status: "Active",
+        createdAt: new Date().toISOString(),
+      }),
+    );
   };
 
   return (
@@ -104,118 +114,146 @@ export default function Patients() {
             </div>
           </div>
         </CardHeader>
-
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left">
-                  <th className="pb-3 font-medium text-slate-500">Patient</th>
-
-                  <th className="pb-3 font-medium text-slate-500">Age</th>
-
-                  <th className="pb-3 font-medium text-slate-500">Gender</th>
-
-                  <th className="pb-3 font-medium text-slate-500">Phone</th>
-
-                  <th className="pb-3 font-medium text-slate-500">
-                    Blood Group
-                  </th>
-
-                  <th className="pb-3 font-medium text-slate-500">Status</th>
-
-                  <th className="pb-3 text-right font-medium text-slate-500">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedPatients.length > 0 ? (
-                  paginatedPatients.map((patient) => (
-                    <tr key={patient.id} className="border-b last:border-0">
-                      <td className="py-4 font-medium text-slate-900">
-                        {patient.name}
-                      </td>
-                      <td className="py-4 text-slate-600">{patient.age}</td>
-                      <td className="py-4 text-slate-600">{patient.gender}</td>
-                      <td className="py-4 text-slate-600">{patient.phone}</td>
-                      <td className="py-4 text-slate-600">
-                        {patient.bloodGroup}
-                      </td>
-                      <td className="py-4">
-                        <Badge
-                          variant={
-                            patient.status === "Active"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {patient.status}
-                        </Badge>
-                      </td>
-                      <td className="py-4 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </DropdownMenuTrigger>
-
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>View patient</DropdownMenuItem>
-
-                            <DropdownMenuItem>Edit patient</DropdownMenuItem>
-
-                            <DropdownMenuItem className="text-red-600">
-                              Delete patient
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="py-10 text-center text-sm text-slate-500"
-                    >
-                      No patients found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-4 flex items-center justify-between border-t pt-4">
-            <p className="text-sm text-slate-500">
-              Showing {startIndex + 1}–
-              {Math.min(startIndex + patientsPerPage, filteredPatients.length)}{" "}
-              of {filteredPatients.length}
-            </p>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((page) => page - 1)}
-              >
-                Previous
-              </Button>
-
-              <span className="text-sm text-slate-600">
-                Page {currentPage} of {totalPages}
-              </span>
-
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((page) => page + 1)}
-              >
-                Next
-              </Button>
+          {loading ? (
+            <div className="py-10 text-center text-sm text-slate-500">
+              Loading patients...
             </div>
-          </div>
+          ) : error ? (
+            <div className="py-10 text-center text-sm text-red-500">
+              {error}
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left">
+                      <th className="pb-3 font-medium text-slate-500">
+                        Patient
+                      </th>
+
+                      <th className="pb-3 font-medium text-slate-500">Age</th>
+
+                      <th className="pb-3 font-medium text-slate-500">
+                        Gender
+                      </th>
+
+                      <th className="pb-3 font-medium text-slate-500">Phone</th>
+
+                      <th className="pb-3 font-medium text-slate-500">
+                        Blood Group
+                      </th>
+
+                      <th className="pb-3 font-medium text-slate-500">
+                        Status
+                      </th>
+
+                      <th className="pb-3 text-right font-medium text-slate-500">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedPatients.length > 0 ? (
+                      paginatedPatients.map((patient) => (
+                        <tr key={patient.id} className="border-b last:border-0">
+                          <td className="py-4 font-medium text-slate-900">
+                            {patient.name}
+                          </td>
+                          <td className="py-4 text-slate-600">{patient.age}</td>
+                          <td className="py-4 text-slate-600">
+                            {patient.gender}
+                          </td>
+                          <td className="py-4 text-slate-600">
+                            {patient.phone}
+                          </td>
+                          <td className="py-4 text-slate-600">
+                            {patient.bloodGroup}
+                          </td>
+                          <td className="py-4">
+                            <Badge
+                              variant={
+                                patient.status === "Active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {patient.status}
+                            </Badge>
+                          </td>
+                          <td className="py-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </DropdownMenuTrigger>
+
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  View patient
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem>
+                                  Edit patient
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem className="text-red-600">
+                                  Delete patient
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="py-10 text-center text-sm text-slate-500"
+                        >
+                          No patients found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t pt-4">
+                <p className="text-sm text-slate-500">
+                  Showing {startIndex + 1}–
+                  {Math.min(
+                    startIndex + patientsPerPage,
+                    filteredPatients.length,
+                  )}{" "}
+                  of {filteredPatients.length}
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((page) => page - 1)}
+                  >
+                    Previous
+                  </Button>
+
+                  <span className="text-sm text-slate-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((page) => page + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
       <AddPatientDialog

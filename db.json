@@ -1,0 +1,85 @@
+{
+  "patients": [
+    {
+      "id": "1",
+      "name": "Rahul Sharma",
+      "age": 32,
+      "gender": "Male",
+      "phone": "9876543210",
+      "bloodGroup": "O+",
+      "status": "Active",
+      "createdAt": "2026-09-10T09:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "name": "Priya Nair",
+      "age": 28,
+      "gender": "Female",
+      "phone": "9876543211",
+      "bloodGroup": "A+",
+      "status": "Active",
+      "createdAt": "2026-09-09T09:00:00.000Z"
+    },
+    {
+      "id": "3",
+      "name": "Arun Kumar",
+      "age": 45,
+      "gender": "Male",
+      "phone": "9876543212",
+      "bloodGroup": "B+",
+      "status": "Inactive",
+      "createdAt": "2026-09-08T09:00:00.000Z"
+    },
+    {
+      "id": "4",
+      "name": "Sneha Rao",
+      "age": 36,
+      "gender": "Female",
+      "phone": "9876543213",
+      "bloodGroup": "AB+",
+      "status": "Active",
+      "createdAt": "2026-09-07T09:00:00.000Z"
+    },
+    {
+      "id": "5",
+      "name": "Vikram Singh",
+      "age": 51,
+      "gender": "Male",
+      "phone": "9876543214",
+      "bloodGroup": "O-",
+      "status": "Active",
+      "createdAt": "2026-09-06T09:00:00.000Z"
+    },
+    {
+      "id": "6",
+      "name": "Ananya Das",
+      "age": 24,
+      "gender": "Female",
+      "phone": "9876543215",
+      "bloodGroup": "B+",
+      "status": "Inactive",
+      "createdAt": "2026-09-05T09:00:00.000Z"
+    },
+    {
+      "name": "Emily Masterson",
+      "age": 30,
+      "gender": "Female",
+      "phone": "9876543216",
+      "bloodGroup": "A-",
+      "status": "Active",
+      "createdAt": "2026-09-10T12:04:40.815Z",
+      "id": "PE8ITNj-Tb4"
+    },
+    {
+      "name": "Anil Kumar",
+      "age": 35,
+      "gender": "Male",
+      "phone": "7899240475",
+      "bloodGroup": "B-",
+      "status": "Active",
+      "createdAt": "2026-09-10T12:05:19.582Z",
+      "id": "4VuPfgcvah8"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
