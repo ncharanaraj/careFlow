@@ -1,12 +1,7 @@
 import { Plus, Search, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -15,16 +10,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { patients } from "@/data/patients";
-
+import { patients as initialPatients, type Patient } from "@/data/patients";
 import { useState } from "react";
+import AddPatientDialog from "@/components/patients/AddPatientDialog";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  
+  const [addPatientOpen, setAddPatientOpen] = useState(false);
+  const [patientList, setPatientList] = useState<Patient[]>(initialPatients);
+
   // Filter patients based on search term
-  const filteredPatients = patients.filter((patient) => {
+  const filteredPatients = patientList.filter((patient) => {
     const searchTerm = search.trim().toLowerCase();
 
     return (
@@ -35,35 +32,52 @@ export default function Patients() {
       patient.status.toLowerCase() === searchTerm
     );
   });
-  
+
   // Pagination logic
   const patientsPerPage = 3;
-  const totalPages = Math.ceil(
-    filteredPatients.length / patientsPerPage
-  );
+  const totalPages = Math.ceil(filteredPatients.length / patientsPerPage);
 
   const startIndex = (currentPage - 1) * patientsPerPage;
 
   const paginatedPatients = filteredPatients.slice(
     startIndex,
-    startIndex + patientsPerPage
+    startIndex + patientsPerPage,
   );
+
+  // Handle adding a new patient
+  const handlePatientAdded = (data: {
+    name: string;
+    age: string;
+    gender: string;
+    phone: string;
+    bloodGroup: string;
+  }) => {
+    const newPatient: Patient = {
+      id: Date.now(),
+      name: data.name,
+      age: Number(data.age),
+      gender: data.gender as Patient["gender"],
+      phone: data.phone,
+      bloodGroup: data.bloodGroup,
+      status: "Active",
+    };
+
+    setPatientList((currentPatients) => [newPatient, ...currentPatients]);
+  };
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            Patients
-          </h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Patients</h1>
 
           <p className="mt-1 text-sm text-slate-500">
             Manage patient records and information.
           </p>
         </div>
 
-        <Button>
+        <Button onClick={() => setAddPatientOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Patient
         </Button>
@@ -73,9 +87,7 @@ export default function Patients() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
-            <CardTitle className="text-base">
-              All Patients
-            </CardTitle>
+            <CardTitle className="text-base">All Patients</CardTitle>
 
             <div className="relative w-72">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -98,29 +110,19 @@ export default function Patients() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-3 font-medium text-slate-500">
-                    Patient
-                  </th>
+                  <th className="pb-3 font-medium text-slate-500">Patient</th>
 
-                  <th className="pb-3 font-medium text-slate-500">
-                    Age
-                  </th>
+                  <th className="pb-3 font-medium text-slate-500">Age</th>
 
-                  <th className="pb-3 font-medium text-slate-500">
-                    Gender
-                  </th>
+                  <th className="pb-3 font-medium text-slate-500">Gender</th>
 
-                  <th className="pb-3 font-medium text-slate-500">
-                    Phone
-                  </th>
+                  <th className="pb-3 font-medium text-slate-500">Phone</th>
 
                   <th className="pb-3 font-medium text-slate-500">
                     Blood Group
                   </th>
 
-                  <th className="pb-3 font-medium text-slate-500">
-                    Status
-                  </th>
+                  <th className="pb-3 font-medium text-slate-500">Status</th>
 
                   <th className="pb-3 text-right font-medium text-slate-500">
                     Actions
@@ -137,39 +139,37 @@ export default function Patients() {
                       <td className="py-4 text-slate-600">{patient.age}</td>
                       <td className="py-4 text-slate-600">{patient.gender}</td>
                       <td className="py-4 text-slate-600">{patient.phone}</td>
-                      <td className="py-4 text-slate-600">{patient.bloodGroup}</td>
+                      <td className="py-4 text-slate-600">
+                        {patient.bloodGroup}
+                      </td>
                       <td className="py-4">
                         <Badge
                           variant={
-                            patient.status === "Active" ? "default" : "secondary"
+                            patient.status === "Active"
+                              ? "default"
+                              : "secondary"
                           }
                         >
                           {patient.status}
                         </Badge>
                       </td>
                       <td className="py-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </DropdownMenuTrigger>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </DropdownMenuTrigger>
 
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            View patient
-                          </DropdownMenuItem>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>View patient</DropdownMenuItem>
 
-                          <DropdownMenuItem>
-                            Edit patient
-                          </DropdownMenuItem>
+                            <DropdownMenuItem>Edit patient</DropdownMenuItem>
 
-                          <DropdownMenuItem className="text-red-600">
-                            Delete patient
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
+                            <DropdownMenuItem className="text-red-600">
+                              Delete patient
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
                     </tr>
                   ))
                 ) : (
@@ -187,10 +187,9 @@ export default function Patients() {
           </div>
           <div className="mt-4 flex items-center justify-between border-t pt-4">
             <p className="text-sm text-slate-500">
-              Showing {startIndex + 1}–{Math.min(
-                startIndex + patientsPerPage,
-                filteredPatients.length
-              )} of {filteredPatients.length}
+              Showing {startIndex + 1}–
+              {Math.min(startIndex + patientsPerPage, filteredPatients.length)}{" "}
+              of {filteredPatients.length}
             </p>
 
             <div className="flex items-center gap-2">
@@ -219,6 +218,11 @@ export default function Patients() {
           </div>
         </CardContent>
       </Card>
+      <AddPatientDialog
+        open={addPatientOpen}
+        onOpenChange={setAddPatientOpen}
+        onPatientAdded={handlePatientAdded}
+      />
     </div>
   );
 }
