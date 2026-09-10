@@ -4,6 +4,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import Dashboard from "@/pages/Dashboard";
 import PlaceholderPage from "@/pages/PlaceholderPage";
 import Patients from "@/pages/Patients";
+import Appointments from "./pages/Appointments";
 
 function App() {
   return (
@@ -12,22 +13,9 @@ function App() {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
 
-          <Route
-            path="/patients"
-            element={
-              <Patients />
-            }
-          />
+          <Route path="/patients" element={<Patients />} />
 
-          <Route
-            path="/appointments"
-            element={
-              <PlaceholderPage
-                title="Appointments"
-                description="Manage hospital appointments."
-              />
-            }
-          />
+          <Route path="/appointments" element={<Appointments />} />
 
           <Route
             path="/prescriptions"
@@ -90,10 +78,7 @@ function App() {
           />
         </Route>
 
-        <Route
-          path="/"
-          element={<Navigate to="/dashboard" replace />}
-        />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );

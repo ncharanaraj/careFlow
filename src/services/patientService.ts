@@ -1,4 +1,4 @@
-import type { Patient } from "@/data/patients";
+import type { Patient } from "@/types/patients";
 
 const API_URL = "http://localhost:3001";
 

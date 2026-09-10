@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Patient } from "@/data/patients";
+import type { Patient } from "@/types/patients";
 
 const patientSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),

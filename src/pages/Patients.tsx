@@ -21,7 +21,7 @@ import {
   removePatient,
 } from "@/store/patientsSlice";
 import PatientDetailsDialog from "@/components/patients/PatientDetailsDialog";
-import type { Patient } from "@/data/patients";
+import type { Patient } from "@/types/patients";
 import {
   AlertDialog,
   AlertDialogAction,

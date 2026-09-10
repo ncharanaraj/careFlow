@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import type { Patient } from "@/data/patients";
+import type { Patient } from "@/types/patients";
 import {
   getPatients,
   createPatient,

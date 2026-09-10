@@ -91,5 +91,88 @@
       "id": "9nX-I2WxFJc"
     }
   ],
+  "departments": [
+    {
+      "id": "dep-1",
+      "name": "Cardiology"
+    },
+    {
+      "id": "dep-2",
+      "name": "Orthopedics"
+    },
+    {
+      "id": "dep-3",
+      "name": "General Medicine"
+    }
+  ],
+  "doctors": [
+    {
+      "id": "doc-1",
+      "name": "Dr. Arjun Rao",
+      "departmentId": "dep-1"
+    },
+    {
+      "id": "doc-2",
+      "name": "Dr. Neha Sharma",
+      "departmentId": "dep-2"
+    },
+    {
+      "id": "doc-3",
+      "name": "Dr. Kiran Patel",
+      "departmentId": "dep-3"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "apt-1",
+      "patientId": 1,
+      "doctorId": "doc-1",
+      "departmentId": "dep-1",
+      "appointmentDate": "2026-09-12",
+      "timeSlot": "10:00 AM",
+      "status": "Scheduled",
+      "createdAt": "2026-09-10T10:00:00.000Z"
+    },
+    {
+      "patientId": "4",
+      "doctorId": "doc-3",
+      "departmentId": "dep-3",
+      "appointmentDate": "2026-09-17",
+      "timeSlot": "11:00 AM",
+      "status": "Scheduled",
+      "createdAt": "2026-09-10T15:22:02.175Z",
+      "id": "IJ20ST0PhLw"
+    },
+    {
+      "patientId": "5",
+      "doctorId": "doc-2",
+      "departmentId": "dep-2",
+      "appointmentDate": "2026-09-25",
+      "timeSlot": "10:00 AM",
+      "status": "Scheduled",
+      "createdAt": "2026-09-10T17:55:07.903Z",
+      "id": "MmnIehFoQYo"
+    },
+    {
+      "patientId": "9nX-I2WxFJc",
+      "doctorId": "doc-3",
+      "departmentId": "dep-3",
+      "appointmentDate": "2026-09-11",
+      "timeSlot": "03:00 PM",
+      "status": "Scheduled",
+      "createdAt": "2026-09-10T18:09:30.248Z",
+      "id": "G7EFXAmJfss"
+    },
+    {
+      "patientId": "PE8ITNj-Tb4",
+      "doctorId": "doc-2",
+      "departmentId": "dep-2",
+      "appointmentDate": "2026-09-16",
+      "timeSlot": "11:00 AM",
+      "status": "Scheduled",
+      "createdAt": "2026-09-10T18:11:44.374Z",
+      "id": "f4R4LtlxyiM"
+    }
+  ],
   "$schema": "./node_modules/json-server/schema.json"
 }

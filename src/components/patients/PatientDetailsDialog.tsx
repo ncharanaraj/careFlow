@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Patient } from "@/data/patients";
+import type { Patient } from "@/types/patients";
 
 interface PatientDetailsDialogProps {
   open: boolean;
