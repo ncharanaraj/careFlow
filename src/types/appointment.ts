@@ -28,3 +28,15 @@ export interface Department {
   status: "Active" | "Inactive";
   createdAt: string;
 }
+
+export interface Staff {
+  id: string | number;
+  name: string;
+  role: string;
+  departmentId: string;
+  phone: string;
+  email: string;
+  joiningDate: string;
+  status: "Active" | "Inactive";
+  createdAt: string;
+}

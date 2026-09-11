@@ -198,5 +198,51 @@
       "id": "G7EFXAmJfss"
     }
   ],
+  "staff": [
+    {
+      "id": "staff-1",
+      "name": "Anita Kulkarni",
+      "role": "Nurse",
+      "departmentId": "dep-1",
+      "phone": "9876500011",
+      "email": "anita.kulkarni@careflow.com",
+      "joiningDate": "2024-06-10",
+      "status": "Active",
+      "createdAt": "2026-09-01T08:00:00.000Z"
+    },
+    {
+      "id": "staff-2",
+      "name": "Rahul Desai",
+      "role": "Receptionist",
+      "departmentId": "dep-3",
+      "phone": "9876500012",
+      "email": "rahul.desai@careflow.com",
+      "joiningDate": "2025-01-15",
+      "status": "Active",
+      "createdAt": "2026-09-02T08:00:00.000Z"
+    },
+    {
+      "id": "staff-3",
+      "name": "Meera Joshi",
+      "role": "Lab Technician",
+      "departmentId": "dep-3",
+      "phone": "9876500013",
+      "email": "meera.joshi@careflow.com",
+      "joiningDate": "2023-11-20",
+      "status": "Active",
+      "createdAt": "2026-09-03T08:00:00.000Z"
+    },
+    {
+      "name": "Dinesh Madival",
+      "role": "Nurse",
+      "departmentId": "O1BuuoVWc7I",
+      "phone": "9876543217",
+      "email": "dinesh@careflow.com",
+      "joiningDate": "2026-09-01",
+      "status": "Active",
+      "createdAt": "2026-09-11T06:39:59.979Z",
+      "id": "rgQKMbIIQak"
+    }
+  ],
   "$schema": "./node_modules/json-server/schema.json"
 }
