@@ -94,15 +94,31 @@
   "departments": [
     {
       "id": "dep-1",
-      "name": "Cardiology"
+      "name": "Cardiology",
+      "description": "Diagnosis and treatment of heart and cardiovascular conditions.",
+      "status": "Active",
+      "createdAt": "2026-09-01T09:00:00.000Z"
     },
     {
       "id": "dep-2",
-      "name": "Orthopedics"
+      "name": "Orthopedics",
+      "description": "Treatment of bone, joint, muscle and musculoskeletal conditions.",
+      "status": "Active",
+      "createdAt": "2026-09-02T09:00:00.000Z"
     },
     {
       "id": "dep-3",
-      "name": "General Medicine"
+      "name": "General Medicine",
+      "description": "General diagnosis and treatment for adult medical conditions.",
+      "status": "Active",
+      "createdAt": "2026-09-03T09:00:00.000Z"
+    },
+    {
+      "name": "Pediatrics",
+      "description": "Treats babies, children, and teens.",
+      "status": "Active",
+      "createdAt": "2026-09-11T05:45:03.728Z",
+      "id": "O1BuuoVWc7I"
     }
   ],
   "doctors": [

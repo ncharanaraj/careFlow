@@ -1,0 +1,144 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import type { Department } from "@/types/appointment";
+import { useEffect } from "react";
+
+const departmentSchema = z.object({
+  name: z.string().min(2, "Department name is required"),
+  description: z.string().min(5, "Description is required"),
+});
+
+export type DepartmentFormData = z.infer<typeof departmentSchema>;
+
+interface AddDepartmentDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onDepartmentAdded: (data: DepartmentFormData) => void;
+  department?: Department | null;
+}
+
+export default function AddDepartmentDialog({
+  open,
+  onOpenChange,
+  onDepartmentAdded,
+  department,
+}: AddDepartmentDialogProps) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<DepartmentFormData>({
+    resolver: zodResolver(departmentSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
+  const handleOpenChange = (isOpen: boolean) => {
+    onOpenChange(isOpen);
+
+    if (!isOpen) {
+      reset();
+    }
+  };
+
+  useEffect(() => {
+    if (open && department) {
+      reset({
+        name: department.name,
+        description: department.description,
+      });
+    }
+
+    if (open && !department) {
+      reset({
+        name: "",
+        description: "",
+      });
+    }
+  }, [open, department, reset]);
+
+  const onSubmit = (data: DepartmentFormData) => {
+    onDepartmentAdded(data);
+    reset();
+    onOpenChange(false);
+  };
+
+  
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            {department ? "Edit Department" : "Add Department"}
+          </DialogTitle>
+
+          <DialogDescription>
+            {department
+              ? "Update the department information."
+              : "Add a new hospital department."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Department Name</Label>
+
+            <Input {...register("name")} placeholder="Cardiology" />
+
+            {errors.name && (
+              <p className="text-xs text-red-500">{errors.name.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Description</Label>
+
+            <textarea
+              {...register("description")}
+              placeholder="Enter department description"
+              className="min-h-28 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            />
+
+            {errors.description && (
+              <p className="text-xs text-red-500">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button type="submit">
+              {department ? "Save Changes" : "Add Department"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

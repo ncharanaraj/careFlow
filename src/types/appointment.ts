@@ -22,6 +22,9 @@ export interface Doctor {
 }
 
 export interface Department {
-  id: string;
+  id: string | number;
   name: string;
+  description: string;
+  status: "Active" | "Inactive";
+  createdAt: string;
 }

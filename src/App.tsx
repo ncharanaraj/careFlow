@@ -6,6 +6,7 @@ import PlaceholderPage from "@/pages/PlaceholderPage";
 import Patients from "@/pages/Patients";
 import Appointments from "./pages/Appointments";
 import Doctors from "./pages/Doctors";
+import Departments from "./pages/Departments";
 
 function App() {
   return (
@@ -40,15 +41,7 @@ function App() {
 
           <Route path="/doctors" element={<Doctors />} />
 
-          <Route
-            path="/departments"
-            element={
-              <PlaceholderPage
-                title="Departments"
-                description="Manage hospital departments."
-              />
-            }
-          />
+          <Route path="/departments" element={<Departments />} />
 
           <Route
             path="/staff"
