@@ -10,9 +10,15 @@ export interface Appointment {
 }
 
 export interface Doctor {
-  id: string;
+  id: string | number;
   name: string;
   departmentId: string;
+  specialization: string;
+  phone: string;
+  email: string;
+  experience: number;
+  status: "Active" | "Inactive";
+  createdAt: string;
 }
 
 export interface Department {

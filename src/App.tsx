@@ -5,6 +5,7 @@ import Dashboard from "@/pages/Dashboard";
 import PlaceholderPage from "@/pages/PlaceholderPage";
 import Patients from "@/pages/Patients";
 import Appointments from "./pages/Appointments";
+import Doctors from "./pages/Doctors";
 
 function App() {
   return (
@@ -37,15 +38,7 @@ function App() {
             }
           />
 
-          <Route
-            path="/doctors"
-            element={
-              <PlaceholderPage
-                title="Doctors"
-                description="Manage doctors and their schedules."
-              />
-            }
-          />
+          <Route path="/doctors" element={<Doctors />} />
 
           <Route
             path="/departments"

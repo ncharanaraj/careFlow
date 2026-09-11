@@ -109,17 +109,46 @@
     {
       "id": "doc-1",
       "name": "Dr. Arjun Rao",
-      "departmentId": "dep-1"
+      "departmentId": "dep-1",
+      "specialization": "Cardiologist",
+      "phone": "9876543210",
+      "email": "arjun.rao@careflow.com",
+      "experience": 8,
+      "status": "Active",
+      "createdAt": "2026-09-01T10:00:00.000Z"
     },
     {
       "id": "doc-2",
       "name": "Dr. Neha Sharma",
-      "departmentId": "dep-2"
+      "departmentId": "dep-2",
+      "specialization": "Orthopedic Surgeon",
+      "phone": "9876543211",
+      "email": "neha.sharma@careflow.com",
+      "experience": 6,
+      "status": "Active",
+      "createdAt": "2026-09-02T10:00:00.000Z"
     },
     {
       "id": "doc-3",
       "name": "Dr. Kiran Patel",
-      "departmentId": "dep-3"
+      "departmentId": "dep-3",
+      "specialization": "General Physician",
+      "phone": "9876543212",
+      "email": "kiran.patel@careflow.com",
+      "experience": 5,
+      "status": "Active",
+      "createdAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "name": "Dr. Charan",
+      "departmentId": "dep-3",
+      "specialization": "MBBS",
+      "phone": "7899240476",
+      "email": "charan@careflow.com",
+      "experience": 10,
+      "status": "Active",
+      "createdAt": "2026-09-11T04:37:39.404Z",
+      "id": "TuWWbwMXlXE"
     }
   ],
   "appointments": [
