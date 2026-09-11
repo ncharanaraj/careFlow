@@ -12,6 +12,8 @@ import { fetchStaffData } from "@/store/staffSlice";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import ErrorState from "@/components/shared/ErrorState";
+import LoadingState from "@/components/shared/LoadingState";
 
 export default function Dashboard() {
   const dispatch = useDispatch<AppDispatch>();
@@ -102,6 +104,54 @@ export default function Dashboard() {
   const cancelledCount = appointments.filter(
     (appointment) => appointment.status === "Cancelled",
   ).length;
+
+  const patientsLoading = useSelector(
+    (state: RootState) => state.patients.loading,
+  );
+
+  const appointmentsLoading = useSelector(
+    (state: RootState) => state.appointments.loading,
+  );
+
+  const doctorsLoading = useSelector(
+    (state: RootState) => state.doctors.loading,
+  );
+
+  const staffLoading = useSelector((state: RootState) => state.staff.loading);
+
+  const dashboardLoading =
+    patientsLoading || appointmentsLoading || doctorsLoading || staffLoading;
+
+  const patientsError = useSelector((state: RootState) => state.patients.error);
+
+  const appointmentsError = useSelector(
+    (state: RootState) => state.appointments.error,
+  );
+
+  const doctorsError = useSelector((state: RootState) => state.doctors.error);
+
+  const staffError = useSelector((state: RootState) => state.staff.error);
+
+  const dashboardError =
+    patientsError || appointmentsError || doctorsError || staffError;
+
+  const handleDashboardRetry = () => {
+    dispatch(fetchPatients());
+    dispatch(fetchAppointmentData());
+    dispatch(fetchDoctorData());
+    dispatch(fetchStaffData());
+  };
+
+  if (dashboardLoading) {
+    return <LoadingState message="Loading dashboard..." />;
+  }
+
+  if (dashboardError) {
+    return (
+      <ErrorState message={dashboardError} onRetry={handleDashboardRetry} />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>

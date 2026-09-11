@@ -15,6 +15,9 @@ interface DoctorsState {
   departments: Department[];
   loading: boolean;
   error: string | null;
+  saving: boolean;
+  deleting: boolean;
+  mutationError: string | null;
 }
 
 const initialState: DoctorsState = {
@@ -22,6 +25,9 @@ const initialState: DoctorsState = {
   departments: [],
   loading: false,
   error: null,
+  saving: false,
+  deleting: false,
+  mutationError: null,
 };
 
 export const fetchDoctorData = createAsyncThunk(
@@ -69,7 +75,11 @@ export const removeDoctor = createAsyncThunk(
 const doctorsSlice = createSlice({
   name: "doctors",
   initialState,
-  reducers: {},
+  reducers: {
+    clearDoctorMutationError(state) {
+      state.mutationError = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchDoctorData.pending, (state) => {
@@ -93,11 +103,28 @@ const doctorsSlice = createSlice({
         state.error = action.error.message ?? "Failed to fetch doctors";
       })
 
+      .addCase(addDoctor.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(addDoctor.fulfilled, (state, action) => {
+        state.saving = false;
         state.doctors.unshift(action.payload);
       })
 
+      .addCase(addDoctor.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError = action.error.message ?? "Failed to add doctor";
+      })
+
+      .addCase(editDoctor.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(editDoctor.fulfilled, (state, action) => {
+        state.saving = false;
         const index = state.doctors.findIndex(
           (doctor) => String(doctor.id) === String(action.payload.id),
         );
@@ -107,12 +134,29 @@ const doctorsSlice = createSlice({
         }
       })
 
+      .addCase(editDoctor.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError = action.error.message ?? "Failed to update doctor";
+      })
+
+      .addCase(removeDoctor.pending, (state) => {
+        state.deleting = true;
+        state.mutationError = null;
+      })
+
       .addCase(removeDoctor.fulfilled, (state, action) => {
         state.doctors = state.doctors.filter(
           (doctor) => String(doctor.id) !== String(action.payload),
         );
+      })
+
+      .addCase(removeDoctor.rejected, (state, action) => {
+        state.deleting = false;
+        state.mutationError = action.error.message ?? "Failed to delete doctor";
       });
   },
 });
+
+export const { clearDoctorMutationError } = doctorsSlice.actions;
 
 export default doctorsSlice.reducer;

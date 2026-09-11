@@ -29,6 +29,8 @@ interface AddDepartmentDialogProps {
   onOpenChange: (open: boolean) => void;
   onDepartmentAdded: (data: DepartmentFormData) => void;
   department?: Department | null;
+  saving?: boolean;
+  mutationError?: string | null;
 }
 
 export default function AddDepartmentDialog({
@@ -36,6 +38,8 @@ export default function AddDepartmentDialog({
   onOpenChange,
   onDepartmentAdded,
   department,
+  saving = false,
+  mutationError,
 }: AddDepartmentDialogProps) {
   const {
     register,
@@ -74,13 +78,15 @@ export default function AddDepartmentDialog({
     }
   }, [open, department, reset]);
 
-  const onSubmit = (data: DepartmentFormData) => {
-    onDepartmentAdded(data);
-    reset();
-    onOpenChange(false);
+  const onSubmit = async (data: DepartmentFormData) => {
+    try {
+      await onDepartmentAdded(data);
+      reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error adding department:", error);
+    }
   };
-
-  
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -124,17 +130,28 @@ export default function AddDepartmentDialog({
             )}
           </div>
 
+          {mutationError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2">
+              <p className="text-sm text-red-600">{mutationError}</p>
+            </div>
+          )}
+
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
+              disabled={saving}
             >
               Cancel
             </Button>
 
-            <Button type="submit">
-              {department ? "Save Changes" : "Add Department"}
+            <Button type="submit" disabled={saving}>
+              {saving
+                ? "Saving..."
+                : department
+                  ? "Save Changes"
+                  : "Add Department"}
             </Button>
           </DialogFooter>
         </form>

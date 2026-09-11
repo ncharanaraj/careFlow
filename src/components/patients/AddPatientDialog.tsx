@@ -46,6 +46,8 @@ interface AddPatientDialogProps {
   onOpenChange: (open: boolean) => void;
   onPatientAdded: (patient: PatientFormData) => void;
   patient?: Patient | null;
+  saving?: boolean;
+  mutationError?: string | null;
 }
 
 export default function AddPatientDialog({
@@ -53,6 +55,8 @@ export default function AddPatientDialog({
   onOpenChange,
   onPatientAdded,
   patient,
+  saving = false,
+  mutationError,
 }: AddPatientDialogProps) {
   const {
     register,
@@ -104,11 +108,15 @@ export default function AddPatientDialog({
     }
   }, [open, patient, reset]);
 
-  const onSubmit = (data: PatientFormData) => {
-    onPatientAdded(data);
+  const onSubmit = async (data: PatientFormData) => {
+    try {
+      await onPatientAdded(data);
 
-    reset();
-    onOpenChange(false);
+      reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error adding patient:", error);
+    }
   };
 
   return (
@@ -223,17 +231,24 @@ export default function AddPatientDialog({
             )}
           </div>
 
+          {mutationError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2">
+              <p className="text-sm text-red-600">{mutationError}</p>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={saving}
             >
               Cancel
             </Button>
 
-            <Button type="submit">
-              {patient ? "Save Changes" : "Add Patient"}
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : patient ? "Save Changes" : "Add Patient"}
             </Button>
           </div>
         </form>

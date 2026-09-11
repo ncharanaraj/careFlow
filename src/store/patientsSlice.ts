@@ -11,12 +11,18 @@ interface PatientsState {
   patients: Patient[];
   loading: boolean;
   error: string | null;
+  saving: boolean;
+  deleting: boolean;
+  mutationError: string | null;
 }
 
 const initialState: PatientsState = {
   patients: [],
   loading: false,
   error: null,
+  saving: false,
+  deleting: false,
+  mutationError: null,
 };
 
 export const fetchPatients = createAsyncThunk(
@@ -56,7 +62,11 @@ export const removePatient = createAsyncThunk(
 const patientsSlice = createSlice({
   name: "patients",
   initialState,
-  reducers: {},
+  reducers: {
+    clearPatientMutationError(state) {
+      state.mutationError = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchPatients.pending, (state) => {
@@ -78,11 +88,28 @@ const patientsSlice = createSlice({
         state.error = "Failed to load patients";
       })
 
+      .addCase(addPatient.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(addPatient.fulfilled, (state, action) => {
+        state.saving = false;
         state.patients.unshift(action.payload);
       })
 
+      .addCase(addPatient.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError = action.error.message ?? "Failed to add patient";
+      })
+
+      .addCase(editPatient.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(editPatient.fulfilled, (state, action) => {
+        state.saving = false;
         const index = state.patients.findIndex(
           (patient) => patient.id === action.payload.id,
         );
@@ -92,12 +119,31 @@ const patientsSlice = createSlice({
         }
       })
 
+      .addCase(editPatient.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError =
+          action.error.message ?? "Failed to update patient";
+      })
+
+      .addCase(removePatient.pending, (state) => {
+        state.deleting = true;
+        state.mutationError = null;
+      })
+
       .addCase(removePatient.fulfilled, (state, action) => {
         state.patients = state.patients.filter(
           (patient) => patient.id !== action.payload,
         );
+      })
+
+      .addCase(removePatient.rejected, (state, action) => {
+        state.deleting = false;
+        state.mutationError =
+          action.error.message ?? "Failed to delete patient";
       });
   },
 });
+
+export const { clearPatientMutationError } = patientsSlice.actions;
 
 export default patientsSlice.reducer;

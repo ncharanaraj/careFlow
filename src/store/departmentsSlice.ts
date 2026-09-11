@@ -13,12 +13,18 @@ interface DepartmentsState {
   departments: Department[];
   loading: boolean;
   error: string | null;
+  saving: boolean;
+  deleting: boolean;
+  mutationError: string | null;
 }
 
 const initialState: DepartmentsState = {
   departments: [],
   loading: false,
   error: null,
+  saving: false,
+  deleting: false,
+  mutationError: null,
 };
 
 export const fetchDepartments = createAsyncThunk(
@@ -58,7 +64,11 @@ export const removeDepartment = createAsyncThunk(
 const departmentsSlice = createSlice({
   name: "departments",
   initialState,
-  reducers: {},
+  reducers: {
+    clearDepartmentMutationError(state) {
+      state.mutationError = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchDepartments.pending, (state) => {
@@ -80,11 +90,29 @@ const departmentsSlice = createSlice({
         state.error = action.error.message ?? "Failed to fetch departments";
       })
 
+      .addCase(addDepartment.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(addDepartment.fulfilled, (state, action) => {
+        state.saving = false;
         state.departments.unshift(action.payload);
       })
 
+      .addCase(addDepartment.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError =
+          action.error.message ?? "Failed to add department";
+      })
+
+      .addCase(editDepartment.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(editDepartment.fulfilled, (state, action) => {
+        state.saving = false;
         const index = state.departments.findIndex(
           (department) => String(department.id) === String(action.payload.id),
         );
@@ -94,12 +122,31 @@ const departmentsSlice = createSlice({
         }
       })
 
+      .addCase(editDepartment.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError =
+          action.error.message ?? "Failed to update department";
+      })
+
+      .addCase(removeDepartment.pending, (state) => {
+        state.deleting = true;
+        state.mutationError = null;
+      })
+
       .addCase(removeDepartment.fulfilled, (state, action) => {
         state.departments = state.departments.filter(
           (department) => String(department.id) !== String(action.payload),
         );
+      })
+
+      .addCase(removeDepartment.rejected, (state, action) => {
+        state.deleting = false;
+        state.mutationError =
+          action.error.message ?? "Failed to delete department";
       });
   },
 });
+
+export const { clearDepartmentMutationError } = departmentsSlice.actions;
 
 export default departmentsSlice.reducer;

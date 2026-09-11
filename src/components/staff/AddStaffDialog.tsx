@@ -51,6 +51,8 @@ interface AddStaffDialogProps {
   departments: Department[];
   onStaffAdded: (data: StaffFormData) => void;
   staff?: Staff | null;
+  saving?: boolean;
+  mutationError?: string | null;
 }
 
 export default function AddStaffDialog({
@@ -59,6 +61,8 @@ export default function AddStaffDialog({
   departments,
   onStaffAdded,
   staff,
+  saving = false,
+  mutationError,
 }: AddStaffDialogProps) {
   const {
     register,
@@ -120,10 +124,15 @@ export default function AddStaffDialog({
   });
 
   const onSubmit = async (data: StaffFormData) => {
-    await onStaffAdded(data);
+    try {
+      await onStaffAdded(data);
 
-    reset();
-    onOpenChange(false);
+      reset();
+      onOpenChange(false);
+    } catch (error) {
+      // Keep dialog open
+      console.error("Failed to save staff:", error);
+    }
   };
 
   const selectedJoiningDate = joiningDate
@@ -321,17 +330,24 @@ export default function AddStaffDialog({
             </div>
           </div>
 
+          {mutationError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2">
+              <p className="text-sm text-red-600">{mutationError}</p>
+            </div>
+          )}
+
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={saving}
             >
               Cancel
             </Button>
 
-            <Button type="submit">
-              {staff ? "Save Changes" : "Add Staff"}
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : staff ? "Save Changes" : "Add Staff"}
             </Button>
           </DialogFooter>
         </form>

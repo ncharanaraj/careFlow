@@ -19,6 +19,7 @@ import {
   addPatient,
   editPatient,
   removePatient,
+  clearPatientMutationError,
 } from "@/store/patientsSlice";
 import PatientDetailsDialog from "@/components/patients/PatientDetailsDialog";
 import type { Patient } from "@/types/patients";
@@ -32,6 +33,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import LoadingState from "@/components/shared/LoadingState";
+import ErrorState from "@/components/shared/ErrorState";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
@@ -45,9 +48,8 @@ export default function Patients() {
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const { patients, loading, error } = useSelector(
-    (state: RootState) => state.patients,
-  );
+  const { patients, loading, error, saving, deleting, mutationError } =
+    useSelector((state: RootState) => state.patients);
 
   useEffect(() => {
     dispatch(fetchPatients());
@@ -95,7 +97,12 @@ export default function Patients() {
         status: "Active",
         createdAt: new Date().toISOString(),
       }),
-    );
+    ).unwrap();
+  };
+
+  const handleAddPatient = () => {
+    dispatch(clearPatientMutationError());
+    setAddPatientOpen(true);
   };
 
   // Handle viewing patient details
@@ -106,6 +113,7 @@ export default function Patients() {
 
   // Handle editing a patient
   const handleEditPatient = (patient: Patient) => {
+    dispatch(clearPatientMutationError());
     setPatientToEdit(patient);
     setEditOpen(true);
   };
@@ -133,16 +141,30 @@ export default function Patients() {
           createdAt: patientToEdit.createdAt,
         },
       }),
-    );
+    ).unwrap();
 
-    setPatientToEdit(null);
-    setEditOpen(false);
+    // setPatientToEdit(null);
+    // setEditOpen(false);
   };
 
   // Handle deleting a patient
   const handleDeletePatient = (patient: Patient) => {
+    dispatch(clearPatientMutationError());
     setPatientToDelete(patient);
     setDeleteOpen(true);
+  };
+
+  const confirmDeletePatient = async () => {
+    if (!patientToDelete) return;
+
+    try {
+      await dispatch(removePatient(patientToDelete.id)).unwrap();
+
+      setPatientToDelete(null);
+      setDeleteOpen(false);
+    } catch (error) {
+      console.error("Failed to delete patient:", error);
+    }
   };
 
   return (
@@ -157,7 +179,7 @@ export default function Patients() {
           </p>
         </div>
 
-        <Button onClick={() => setAddPatientOpen(true)}>
+        <Button onClick={handleAddPatient}>
           <Plus className="mr-2 h-4 w-4" />
           Add Patient
         </Button>
@@ -186,13 +208,12 @@ export default function Patients() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="py-10 text-center text-sm text-slate-500">
-              Loading patients...
-            </div>
+            <LoadingState message="Loading patients..." />
           ) : error ? (
-            <div className="py-10 text-center text-sm text-red-500">
-              {error}
-            </div>
+            <ErrorState
+              message={error}
+              onRetry={() => dispatch(fetchPatients())}
+            />
           ) : (
             <>
               <div className="overflow-x-auto">
@@ -337,6 +358,8 @@ export default function Patients() {
         open={addPatientOpen}
         onOpenChange={setAddPatientOpen}
         onPatientAdded={handlePatientAdded}
+        saving={saving}
+        mutationError={mutationError}
       />
       <PatientDetailsDialog
         open={detailsOpen}
@@ -348,6 +371,8 @@ export default function Patients() {
         onOpenChange={setEditOpen}
         onPatientAdded={handlePatientUpdated}
         patient={patientToEdit}
+        saving={saving}
+        mutationError={mutationError}
       />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
@@ -360,21 +385,19 @@ export default function Patients() {
                 {patientToDelete?.name}
               </span>
               ? This action cannot be undone.
+              {mutationError && (
+                <p className="mt-3 text-sm text-red-600">{mutationError}</p>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
 
             <AlertDialogAction
-              onClick={async () => {
-                if (!patientToDelete) return;
-
-                await dispatch(removePatient(patientToDelete.id));
-
-                setPatientToDelete(null);
-                setDeleteOpen(false);
-              }}
+              onClick={confirmDeletePatient}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
             >
               Delete
             </AlertDialogAction>

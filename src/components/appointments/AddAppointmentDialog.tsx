@@ -53,6 +53,8 @@ interface AddAppointmentDialogProps {
   departments: Department[];
   onAppointmentAdded: (data: AppointmentFormData) => void;
   appointment?: Appointment | null;
+  saving?: boolean;
+  mutationError?: string | null;
 }
 
 export default function AddAppointmentDialog({
@@ -63,6 +65,8 @@ export default function AddAppointmentDialog({
   departments,
   onAppointmentAdded,
   appointment,
+  saving = false,
+  mutationError,
 }: AddAppointmentDialogProps) {
   const {
     handleSubmit,
@@ -163,10 +167,14 @@ export default function AddAppointmentDialog({
     }
   };
 
-  const onSubmit = (data: AppointmentFormData) => {
-    onAppointmentAdded(data);
-    reset();
-    onOpenChange(false);
+  const onSubmit = async (data: AppointmentFormData) => {
+    try {
+      await onAppointmentAdded(data);
+      reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to add appointment", error);
+    }
   };
 
   return (
@@ -383,17 +391,28 @@ export default function AddAppointmentDialog({
             </div>
           </div>
 
+          {mutationError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2">
+              <p className="text-sm text-red-600">{mutationError}</p>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
+              disabled={saving}
             >
               Cancel
             </Button>
 
-            <Button type="submit">
-              {appointment ? "Save Changes" : "Add Appointment"}
+            <Button type="submit" disabled={saving}>
+              {saving
+                ? "Saving..."
+                : appointment
+                  ? "Save Changes"
+                  : "Add Appointment"}
             </Button>
           </div>
         </form>

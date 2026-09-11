@@ -7,6 +7,7 @@ import {
   addAppointment,
   editAppointment,
   removeAppointment,
+  clearAppointmentMutationError,
 } from "@/store/appointmentsSlice";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +43,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ErrorState from "@/components/shared/ErrorState";
+import LoadingState from "@/components/shared/LoadingState";
 
 export default function Appointments() {
   const [addAppointmentOpen, setAddAppointmentOpen] = useState(false);
@@ -59,9 +62,24 @@ export default function Appointments() {
   const [appointmentToView, setAppointmentToView] =
     useState<Appointment | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] =
+    useState<Appointment | null>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [appointmentToComplete, setAppointmentToComplete] =
+    useState<Appointment | null>(null);
+  const [completeOpen, setCompleteOpen] = useState(false);
 
-  const { appointments, patients, doctors, departments, loading, error } =
-    useSelector((state: RootState) => state.appointments);
+  const {
+    appointments,
+    patients,
+    doctors,
+    departments,
+    loading,
+    error,
+    saving,
+    deleting,
+    mutationError,
+  } = useSelector((state: RootState) => state.appointments);
 
   useEffect(() => {
     dispatch(fetchAppointmentData());
@@ -90,7 +108,12 @@ export default function Appointments() {
         status: "Scheduled",
         createdAt: new Date().toISOString(),
       }),
-    );
+    ).unwrap();
+  };
+
+  const handleAddAppointment = () => {
+    dispatch(clearAppointmentMutationError());
+    setAddAppointmentOpen(true);
   };
 
   const filteredAppointments = appointments.filter((appointment) => {
@@ -113,6 +136,7 @@ export default function Appointments() {
   });
 
   const handleEditAppointment = (appointment: Appointment) => {
+    dispatch(clearAppointmentMutationError());
     setAppointmentToEdit(appointment);
     setEditOpen(true);
   };
@@ -133,30 +157,35 @@ export default function Appointments() {
           createdAt: appointmentToEdit.createdAt,
         },
       }),
-    );
+    ).unwrap();
 
-    setAppointmentToEdit(null);
-    setEditOpen(false);
+    // setAppointmentToEdit(null);
+    // setEditOpen(false);
   };
 
-  const handleCancelAppointment = async (appointment: Appointment) => {
-    await dispatch(
-      editAppointment({
-        id: appointment.id,
-        appointment: {
-          patientId: appointment.patientId,
-          doctorId: appointment.doctorId,
-          departmentId: appointment.departmentId,
-          appointmentDate: appointment.appointmentDate,
-          timeSlot: appointment.timeSlot,
-          status: "Cancelled",
-          createdAt: appointment.createdAt,
-        },
-      }),
-    );
+  const confirmCancelAppointment = async () => {
+    if (!appointmentToCancel) return;
+
+    try {
+      await dispatch(
+        editAppointment({
+          id: appointmentToCancel.id,
+          appointment: {
+            ...appointmentToCancel,
+            status: "Cancelled",
+          },
+        }),
+      ).unwrap();
+
+      setAppointmentToCancel(null);
+      setCancelOpen(false);
+    } catch (error) {
+      console.error("Failed to cancel appointment:", error);
+    }
   };
 
   const handleDeleteClick = (appointment: Appointment) => {
+    dispatch(clearAppointmentMutationError());
     setAppointmentToDelete(appointment);
     setDeleteOpen(true);
   };
@@ -164,7 +193,7 @@ export default function Appointments() {
   const handleDeleteAppointment = async () => {
     if (!appointmentToDelete) return;
 
-    await dispatch(removeAppointment(appointmentToDelete.id));
+    await dispatch(removeAppointment(appointmentToDelete.id)).unwrap();
 
     setAppointmentToDelete(null);
     setDeleteOpen(false);
@@ -175,16 +204,39 @@ export default function Appointments() {
     setViewOpen(true);
   };
 
-  const handleCompleteAppointment = async (appointment: Appointment) => {
-    await dispatch(
-      editAppointment({
-        id: appointment.id,
-        appointment: {
-          ...appointment,
-          status: "Completed",
-        },
-      }),
-    );
+  const handleCompleteClick = (appointment: Appointment) => {
+    dispatch(clearAppointmentMutationError());
+
+    setAppointmentToComplete(appointment);
+    setCompleteOpen(true);
+  };
+
+  const confirmCompleteAppointment = async () => {
+    if (!appointmentToComplete) return;
+
+    try {
+      await dispatch(
+        editAppointment({
+          id: appointmentToComplete.id,
+          appointment: {
+            ...appointmentToComplete,
+            status: "Completed",
+          },
+        }),
+      ).unwrap();
+
+      setAppointmentToComplete(null);
+      setCompleteOpen(false);
+    } catch (error) {
+      console.error("Failed to complete appointment:", error);
+    }
+  };
+
+  const handleCancelClick = (appointment: Appointment) => {
+    dispatch(clearAppointmentMutationError());
+
+    setAppointmentToCancel(appointment);
+    setCancelOpen(true);
   };
 
   const appointmentsPerPage = 3;
@@ -213,7 +265,7 @@ export default function Appointments() {
           </p>
         </div>
 
-        <Button onClick={() => setAddAppointmentOpen(true)}>
+        <Button onClick={handleAddAppointment}>
           <Plus className="mr-2 h-4 w-4" />
           Add Appointment
         </Button>
@@ -226,13 +278,12 @@ export default function Appointments() {
 
         <CardContent>
           {loading ? (
-            <div className="py-10 text-center text-sm text-slate-500">
-              Loading appointments...
-            </div>
+            <LoadingState message="Loading appointments..." />
           ) : error ? (
-            <div className="py-10 text-center text-sm text-red-500">
-              {error}
-            </div>
+            <ErrorState
+              message={error}
+              onRetry={() => dispatch(fetchAppointmentData())}
+            />
           ) : (
             <div className="overflow-x-auto">
               <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
@@ -383,7 +434,7 @@ export default function Appointments() {
                               {appointment.status === "Scheduled" && (
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    handleCompleteAppointment(appointment)
+                                    handleCompleteClick(appointment)
                                   }
                                 >
                                   Mark as Completed
@@ -392,9 +443,7 @@ export default function Appointments() {
                               {appointment.status === "Scheduled" && (
                                 <DropdownMenuItem
                                   className="text-red-600"
-                                  onClick={() =>
-                                    handleCancelAppointment(appointment)
-                                  }
+                                  onClick={() => handleCancelClick(appointment)}
                                 >
                                   Cancel Appointment
                                 </DropdownMenuItem>
@@ -469,7 +518,10 @@ export default function Appointments() {
         doctors={doctors}
         departments={departments}
         onAppointmentAdded={handleAppointmentAdded}
+        saving={saving}
+        mutationError={mutationError}
       />
+
       <AppointmentDetailsDialog
         open={viewOpen}
         onOpenChange={setViewOpen}
@@ -478,6 +530,7 @@ export default function Appointments() {
         doctors={doctors}
         departments={departments}
       />
+
       <AddAppointmentDialog
         open={editOpen}
         onOpenChange={setEditOpen}
@@ -486,7 +539,10 @@ export default function Appointments() {
         departments={departments}
         onAppointmentAdded={handleAppointmentUpdated}
         appointment={appointmentToEdit}
+        saving={saving}
+        mutationError={mutationError}
       />
+
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -496,16 +552,79 @@ export default function Appointments() {
               This will permanently delete this appointment. This action cannot
               be undone.
             </AlertDialogDescription>
+            {mutationError && (
+              <p className="mt-3 text-sm text-red-600">{mutationError}</p>
+            )}
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
 
             <AlertDialogAction
               onClick={handleDeleteAppointment}
               className="bg-red-600 hover:bg-red-700"
+              disabled={deleting}
             >
-              Delete
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel appointment?</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              Are you sure you want to cancel this appointment? This will change
+              the appointment status to Cancelled.
+            </AlertDialogDescription>
+
+            {mutationError && (
+              <p className="mt-3 text-sm text-red-600">{mutationError}</p>
+            )}
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>
+              Keep Appointment
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={confirmCancelAppointment}
+              disabled={saving}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {saving ? "Cancelling..." : "Cancel Appointment"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={completeOpen} onOpenChange={setCompleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete appointment?</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              Are you sure you want to mark this appointment as completed? The
+              appointment status will be changed to Completed.
+            </AlertDialogDescription>
+
+            {mutationError && (
+              <p className="mt-3 text-sm text-red-600">{mutationError}</p>
+            )}
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={confirmCompleteAppointment}
+              disabled={saving}
+            >
+              {saving ? "Completing..." : "Mark as Completed"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

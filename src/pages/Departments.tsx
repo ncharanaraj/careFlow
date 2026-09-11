@@ -7,6 +7,7 @@ import {
   editDepartment,
   fetchDepartments,
   removeDepartment,
+  clearDepartmentMutationError,
 } from "@/store/departmentsSlice";
 
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ErrorState from "@/components/shared/ErrorState";
+import LoadingState from "@/components/shared/LoadingState";
 
 export default function Departments() {
   const [addDepartmentOpen, setAddDepartmentOpen] = useState(false);
@@ -65,9 +68,8 @@ export default function Departments() {
 
   const dispatch = useDispatch<AppDispatch>();
 
-  const { departments, loading, error } = useSelector(
-    (state: RootState) => state.departments,
-  );
+  const { departments, loading, error, saving, deleting, mutationError } =
+    useSelector((state: RootState) => state.departments);
 
   const doctors = useSelector((state: RootState) => state.doctors.doctors);
 
@@ -90,6 +92,11 @@ export default function Departments() {
     );
   });
 
+  const handleAddDepartment = () => {
+    dispatch(clearDepartmentMutationError());
+    setAddDepartmentOpen(true);
+  };
+
   const handleDepartmentAdded = async (data: DepartmentFormData) => {
     await dispatch(
       addDepartment({
@@ -98,7 +105,7 @@ export default function Departments() {
         status: "Active",
         createdAt: new Date().toISOString(),
       }),
-    );
+    ).unwrap();
   };
 
   const handleViewDepartment = (department: Department) => {
@@ -107,6 +114,7 @@ export default function Departments() {
   };
 
   const handleEditDepartment = (department: Department) => {
+    dispatch(clearDepartmentMutationError());
     setDepartmentToEdit(department);
     setEditOpen(true);
   };
@@ -124,13 +132,14 @@ export default function Departments() {
           createdAt: departmentToEdit.createdAt,
         },
       }),
-    );
+    ).unwrap();
 
-    setDepartmentToEdit(null);
-    setEditOpen(false);
+    // setDepartmentToEdit(null);
+    // setEditOpen(false);
   };
 
   const handleDeleteClick = (department: Department) => {
+    dispatch(clearDepartmentMutationError());
     setDepartmentToDelete(department);
     setDeleteOpen(true);
   };
@@ -155,7 +164,7 @@ export default function Departments() {
       return;
     }
 
-    await dispatch(removeDepartment(departmentToDelete.id));
+    await dispatch(removeDepartment(departmentToDelete.id)).unwrap();
 
     setDepartmentToDelete(null);
     setDeleteOpen(false);
@@ -184,7 +193,7 @@ export default function Departments() {
           </p>
         </div>
 
-        <Button onClick={() => setAddDepartmentOpen(true)}>
+        <Button onClick={handleAddDepartment}>
           <Plus className="mr-2 h-4 w-4" />
           Add Department
         </Button>
@@ -209,16 +218,13 @@ export default function Departments() {
           </div>
         </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className="py-10 text-center text-sm text-slate-500">
-            Loading departments...
-          </div>
-        )}
+        {loading && <LoadingState message="Loading departments..." />}
 
-        {/* Error */}
         {!loading && error && (
-          <div className="py-10 text-center text-sm text-red-500">{error}</div>
+          <ErrorState
+            message={error}
+            onRetry={() => dispatch(fetchDepartments())}
+          />
         )}
 
         {/* Table */}
@@ -350,6 +356,8 @@ export default function Departments() {
         open={addDepartmentOpen}
         onOpenChange={setAddDepartmentOpen}
         onDepartmentAdded={handleDepartmentAdded}
+        saving={saving}
+        mutationError={mutationError}
       />
       <DepartmentDetailsDialog
         open={viewOpen}
@@ -361,6 +369,8 @@ export default function Departments() {
         onOpenChange={setEditOpen}
         onDepartmentAdded={handleDepartmentUpdated}
         department={departmentToEdit}
+        saving={saving}
+        mutationError={mutationError}
       />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
@@ -375,6 +385,9 @@ export default function Departments() {
               {departmentToDelete && isDepartmentInUse(departmentToDelete)
                 ? `${departmentToDelete.name} is currently being used by doctors or appointments. Remove those relationships before deleting this department.`
                 : `This will permanently delete ${departmentToDelete?.name ?? "this department"}. This action cannot be undone.`}
+              {mutationError && (
+                <p className="mt-3 text-sm text-red-600">{mutationError}</p>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -383,13 +396,16 @@ export default function Departments() {
               <AlertDialogCancel>Close</AlertDialogCancel>
             ) : (
               <>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel disabled={deleting}>
+                  Cancel
+                </AlertDialogCancel>
 
                 <AlertDialogAction
                   onClick={handleDeleteDepartment}
                   className="bg-red-600 hover:bg-red-700"
+                  disabled={deleting}
                 >
-                  Delete
+                  {deleting ? "Deleting..." : "Delete"}
                 </AlertDialogAction>
               </>
             )}

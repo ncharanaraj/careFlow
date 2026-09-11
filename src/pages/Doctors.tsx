@@ -4,6 +4,7 @@ import { MoreHorizontal, Plus, Search } from "lucide-react";
 
 import type { AppDispatch, RootState } from "@/store/store";
 import {
+  clearDoctorMutationError,
   editDoctor,
   fetchDoctorData,
   removeDoctor,
@@ -55,6 +56,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ErrorState from "@/components/shared/ErrorState";
+import LoadingState from "@/components/shared/LoadingState";
 
 export default function Doctors() {
   const [addDoctorOpen, setAddDoctorOpen] = useState(false);
@@ -68,9 +71,15 @@ export default function Doctors() {
 
   const dispatch = useDispatch<AppDispatch>();
 
-  const { doctors, departments, loading, error } = useSelector(
-    (state: RootState) => state.doctors,
-  );
+  const {
+    doctors,
+    departments,
+    loading,
+    error,
+    saving,
+    deleting,
+    mutationError,
+  } = useSelector((state: RootState) => state.doctors);
 
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
@@ -110,7 +119,12 @@ export default function Doctors() {
         status: "Active",
         createdAt: new Date().toISOString(),
       }),
-    );
+    ).unwrap();
+  };
+
+  const handleAddDoctor = () => {
+    dispatch(clearDoctorMutationError());
+    setAddDoctorOpen(true);
   };
 
   const handleViewDoctor = (doctor: Doctor) => {
@@ -119,11 +133,13 @@ export default function Doctors() {
   };
 
   const handleEditDoctor = (doctor: Doctor) => {
+    dispatch(clearDoctorMutationError());
     setDoctorToEdit(doctor);
     setEditOpen(true);
   };
 
   const handleDeleteClick = (doctor: Doctor) => {
+    dispatch(clearDoctorMutationError());
     setDoctorToDelete(doctor);
     setDeleteOpen(true);
   };
@@ -131,7 +147,7 @@ export default function Doctors() {
   const handleDeleteDoctor = async () => {
     if (!doctorToDelete) return;
 
-    await dispatch(removeDoctor(doctorToDelete.id));
+    await dispatch(removeDoctor(doctorToDelete.id)).unwrap();
 
     setDoctorToDelete(null);
     setDeleteOpen(false);
@@ -154,10 +170,10 @@ export default function Doctors() {
           createdAt: doctorToEdit.createdAt,
         },
       }),
-    );
+    ).unwrap();
 
-    setDoctorToEdit(null);
-    setEditOpen(false);
+    // setDoctorToEdit(null);
+    // setEditOpen(false);
   };
 
   const doctorsPerPage = 2;
@@ -183,7 +199,7 @@ export default function Doctors() {
           </p>
         </div>
 
-        <Button onClick={() => setAddDoctorOpen(true)}>
+        <Button onClick={handleAddDoctor}>
           <Plus className="mr-2 h-4 w-4" />
           Add Doctor
         </Button>
@@ -244,16 +260,13 @@ export default function Doctors() {
           </div>
         </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className="py-10 text-center text-sm text-slate-500">
-            Loading doctors...
-          </div>
-        )}
+        {loading && <LoadingState message="Loading doctors..." />}
 
-        {/* Error */}
         {!loading && error && (
-          <div className="py-10 text-center text-sm text-red-500">{error}</div>
+          <ErrorState
+            message={error}
+            onRetry={() => dispatch(fetchDoctorData())}
+          />
         )}
 
         {/* Table */}
@@ -399,6 +412,8 @@ export default function Doctors() {
         onOpenChange={setAddDoctorOpen}
         departments={departments}
         onDoctorAdded={handleDoctorAdded}
+        saving={saving}
+        mutationError={mutationError}
       />
       <DoctorDetailsDialog
         open={viewOpen}
@@ -412,6 +427,8 @@ export default function Doctors() {
         departments={departments}
         onDoctorAdded={handleDoctorUpdated}
         doctor={doctorToEdit}
+        saving={saving}
+        mutationError={mutationError}
       />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
@@ -422,17 +439,21 @@ export default function Doctors() {
               This will permanently delete{" "}
               <span className="font-medium">{doctorToDelete?.name}</span>. This
               action cannot be undone.
+              {mutationError && (
+                <p className="mt-3 text-sm text-red-600">{mutationError}</p>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
 
             <AlertDialogAction
               onClick={handleDeleteDoctor}
               className="bg-red-600 hover:bg-red-700"
+              disabled={deleting}
             >
-              Delete
+              {deleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

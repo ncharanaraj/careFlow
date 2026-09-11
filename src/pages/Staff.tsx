@@ -8,6 +8,7 @@ import {
   editStaff,
   fetchStaffData,
   removeStaff,
+  clearStaffMutationError,
 } from "@/store/staffSlice";
 
 import { Button } from "@/components/ui/button";
@@ -56,15 +57,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ErrorState from "@/components/shared/ErrorState";
+import LoadingState from "@/components/shared/LoadingState";
 
 export default function Staff() {
   const [addOpen, setAddOpen] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
 
-  const { staff, departments, loading, error } = useSelector(
-    (state: RootState) => state.staff,
-  );
+  const {
+    staff,
+    departments,
+    loading,
+    error,
+    saving,
+    deleting,
+    mutationError,
+  } = useSelector((state: RootState) => state.staff);
 
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
@@ -115,7 +124,12 @@ export default function Staff() {
         status: "Active",
         createdAt: new Date().toISOString(),
       }),
-    );
+    ).unwrap();
+  };
+
+  const handleAddStaff = () => {
+    dispatch(clearStaffMutationError());
+    setAddOpen(true);
   };
 
   const handleViewStaff = (member: StaffType) => {
@@ -124,6 +138,8 @@ export default function Staff() {
   };
 
   const handleEditStaff = (member: StaffType) => {
+    dispatch(clearStaffMutationError());
+
     setStaffToEdit(member);
     setEditOpen(true);
   };
@@ -147,13 +163,15 @@ export default function Staff() {
           createdAt: staffToEdit.createdAt,
         },
       }),
-    );
+    ).unwrap();
 
-    setStaffToEdit(null);
-    setEditOpen(false);
+    // setStaffToEdit(null);
+    // setEditOpen(false);
   };
 
   const handleDeleteClick = (member: StaffType) => {
+    dispatch(clearStaffMutationError());
+
     setStaffToDelete(member);
     setDeleteOpen(true);
   };
@@ -161,10 +179,13 @@ export default function Staff() {
   const handleDeleteStaff = async () => {
     if (!staffToDelete) return;
 
-    await dispatch(removeStaff(staffToDelete.id));
-
-    setStaffToDelete(null);
-    setDeleteOpen(false);
+    try {
+      await dispatch(removeStaff(staffToDelete.id)).unwrap();
+      setStaffToDelete(null);
+      setDeleteOpen(false);
+    } catch (error) {
+      console.error("Failed to delete staff:", error);
+    }
   };
 
   const staffPerPage = 3;
@@ -190,7 +211,7 @@ export default function Staff() {
           </p>
         </div>
 
-        <Button onClick={() => setAddOpen(true)}>
+        <Button onClick={handleAddStaff}>
           <Plus className="mr-2 h-4 w-4" />
           Add Staff
         </Button>
@@ -288,16 +309,13 @@ export default function Staff() {
           </div>
         </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className="py-10 text-center text-sm text-slate-500">
-            Loading staff...
-          </div>
-        )}
+        {loading && <LoadingState message="Loading staff..." />}
 
-        {/* Error */}
         {!loading && error && (
-          <div className="py-10 text-center text-sm text-red-500">{error}</div>
+          <ErrorState
+            message={error}
+            onRetry={() => dispatch(fetchStaffData())}
+          />
         )}
 
         {/* Table */}
@@ -421,6 +439,8 @@ export default function Staff() {
               departments={departments}
               onStaffAdded={handleStaffUpdated}
               staff={staffToEdit}
+              saving={saving}
+              mutationError={mutationError}
             />
             <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
               <AlertDialogContent>
@@ -431,17 +451,25 @@ export default function Staff() {
                     This will permanently delete{" "}
                     <span className="font-medium">{staffToDelete?.name}</span>.
                     This action cannot be undone.
+                    {mutationError && (
+                      <p className="mt-3 text-sm text-red-600">
+                        {mutationError}
+                      </p>
+                    )}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
 
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel disabled={deleting}>
+                    Cancel
+                  </AlertDialogCancel>
 
                   <AlertDialogAction
                     onClick={handleDeleteStaff}
+                    disabled={deleting}
                     className="bg-red-600 hover:bg-red-700"
                   >
-                    Delete
+                    {deleting ? "Deleting..." : "Delete"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -483,6 +511,8 @@ export default function Staff() {
         onOpenChange={setAddOpen}
         departments={departments}
         onStaffAdded={handleStaffAdded}
+        saving={saving}
+        mutationError={mutationError}
       />
     </div>
   );

@@ -16,6 +16,9 @@ interface StaffState {
   departments: Department[];
   loading: boolean;
   error: string | null;
+  saving: boolean;
+  deleting: boolean;
+  mutationError: string | null;
 }
 
 const initialState: StaffState = {
@@ -23,6 +26,9 @@ const initialState: StaffState = {
   departments: [],
   loading: false,
   error: null,
+  saving: false,
+  deleting: false,
+  mutationError: null,
 };
 
 export const fetchStaffData = createAsyncThunk(
@@ -64,7 +70,11 @@ export const removeStaff = createAsyncThunk(
 const staffSlice = createSlice({
   name: "staff",
   initialState,
-  reducers: {},
+  reducers: {
+    clearStaffMutationError: (state) => {
+      state.mutationError = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchStaffData.pending, (state) => {
@@ -88,11 +98,29 @@ const staffSlice = createSlice({
         state.error = action.error.message ?? "Failed to fetch staff";
       })
 
+      .addCase(addStaff.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(addStaff.fulfilled, (state, action) => {
+        state.saving = false;
         state.staff.unshift(action.payload);
       })
 
+      .addCase(addStaff.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError = action.error.message ?? "Failed to add staff";
+      })
+
+      .addCase(editStaff.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(editStaff.fulfilled, (state, action) => {
+        state.saving = false;
+
         const index = state.staff.findIndex(
           (member) => String(member.id) === String(action.payload.id),
         );
@@ -102,12 +130,31 @@ const staffSlice = createSlice({
         }
       })
 
+      .addCase(editStaff.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError = action.error.message ?? "Failed to update staff";
+      })
+
+      .addCase(removeStaff.pending, (state) => {
+        state.deleting = true;
+        state.mutationError = null;
+      })
+
       .addCase(removeStaff.fulfilled, (state, action) => {
+        state.deleting = false;
+
         state.staff = state.staff.filter(
           (member) => String(member.id) !== String(action.payload),
         );
+      })
+
+      .addCase(removeStaff.rejected, (state, action) => {
+        state.deleting = false;
+        state.mutationError = action.error.message ?? "Failed to delete staff";
       });
   },
 });
+
+export const { clearStaffMutationError } = staffSlice.actions;
 
 export default staffSlice.reducer;

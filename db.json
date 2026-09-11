@@ -1,16 +1,6 @@
 {
   "patients": [
     {
-      "id": "1",
-      "name": "Rahul Sharma",
-      "age": 32,
-      "gender": "Male",
-      "phone": "9876543210",
-      "bloodGroup": "O+",
-      "status": "Active",
-      "createdAt": "2026-09-10T09:00:00.000Z"
-    },
-    {
       "id": "2",
       "name": "Priya Nair",
       "age": 28,
@@ -69,26 +59,6 @@
       "status": "Active",
       "createdAt": "2026-09-10T12:04:40.815Z",
       "id": "PE8ITNj-Tb4"
-    },
-    {
-      "name": "Anil Kumar",
-      "age": 40,
-      "gender": "Male",
-      "phone": "7899240475",
-      "bloodGroup": "B-",
-      "status": "Active",
-      "createdAt": "2026-09-10T12:33:16.181Z",
-      "id": "OgemI4Z7bGw"
-    },
-    {
-      "name": "Swati",
-      "age": 25,
-      "gender": "Female",
-      "phone": "9876543113",
-      "bloodGroup": "AB+",
-      "status": "Active",
-      "createdAt": "2026-09-10T12:37:19.333Z",
-      "id": "9nX-I2WxFJc"
     },
     {
       "name": "Ganesh Madival",
@@ -179,7 +149,7 @@
   ],
   "appointments": [
     {
-      "patientId": 1,
+      "patientId": "3",
       "doctorId": "doc-1",
       "departmentId": "dep-1",
       "appointmentDate": "2026-09-12",
@@ -189,12 +159,12 @@
       "id": "apt-1"
     },
     {
-      "patientId": "4",
+      "patientId": "5",
       "doctorId": "doc-3",
       "departmentId": "dep-3",
       "appointmentDate": "2026-09-17",
       "timeSlot": "11:00 AM",
-      "status": "Scheduled",
+      "status": "Cancelled",
       "createdAt": "2026-09-10T15:22:02.175Z",
       "id": "IJ20ST0PhLw"
     },
@@ -209,7 +179,7 @@
       "id": "MmnIehFoQYo"
     },
     {
-      "patientId": "9nX-I2WxFJc",
+      "patientId": null,
       "doctorId": "doc-3",
       "departmentId": "dep-3",
       "appointmentDate": "2026-09-11",
@@ -219,14 +189,24 @@
       "id": "G7EFXAmJfss"
     },
     {
-      "patientId": "xDd3TcrECHs",
-      "doctorId": "doc-1",
-      "departmentId": "dep-1",
-      "appointmentDate": "2026-09-11",
-      "timeSlot": "11:00 AM",
+      "patientId": "2",
+      "doctorId": "BhVHsdpTLiQ",
+      "departmentId": "O1BuuoVWc7I",
+      "appointmentDate": "2026-09-12",
+      "timeSlot": "02:00 PM",
       "status": "Cancelled",
-      "createdAt": "2026-09-11T06:59:41.427Z",
-      "id": "QVpL43ZQQiU"
+      "createdAt": "2026-09-11T15:56:15.891Z",
+      "id": "DuzIfi2uBHM"
+    },
+    {
+      "patientId": "xDd3TcrECHs",
+      "doctorId": "doc-2",
+      "departmentId": "dep-2",
+      "appointmentDate": "2026-09-16",
+      "timeSlot": "03:00 PM",
+      "status": "Completed",
+      "createdAt": "2026-09-11T15:56:28.311Z",
+      "id": "uy1PNaCBCww"
     }
   ],
   "staff": [

@@ -22,6 +22,9 @@ interface AppointmentsState {
   departments: Department[];
   loading: boolean;
   error: string | null;
+  saving: boolean;
+  deleting: boolean;
+  mutationError: string | null;
 }
 
 const initialState: AppointmentsState = {
@@ -31,6 +34,9 @@ const initialState: AppointmentsState = {
   departments: [],
   loading: false,
   error: null,
+  saving: false,
+  deleting: false,
+  mutationError: null,
 };
 
 export const fetchAppointmentData = createAsyncThunk(
@@ -82,7 +88,11 @@ export const removeAppointment = createAsyncThunk(
 const appointmentsSlice = createSlice({
   name: "appointments",
   initialState,
-  reducers: {},
+  reducers: {
+    clearAppointmentMutationError(state) {
+      state.mutationError = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchAppointmentData.pending, (state) => {
@@ -107,11 +117,29 @@ const appointmentsSlice = createSlice({
         state.error = "Failed to load appointments";
       })
 
+      .addCase(addAppointment.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(addAppointment.fulfilled, (state, action) => {
+        state.saving = false;
         state.appointments.unshift(action.payload);
       })
 
+      .addCase(addAppointment.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError =
+          action.error.message ?? "Failed to add appointment";
+      })
+
+      .addCase(editAppointment.pending, (state) => {
+        state.saving = true;
+        state.mutationError = null;
+      })
+
       .addCase(editAppointment.fulfilled, (state, action) => {
+        state.saving = false;
         const index = state.appointments.findIndex(
           (appointment) => appointment.id === action.payload.id,
         );
@@ -121,12 +149,31 @@ const appointmentsSlice = createSlice({
         }
       })
 
+      .addCase(editAppointment.rejected, (state, action) => {
+        state.saving = false;
+        state.mutationError =
+          action.error.message ?? "Failed to update appointment";
+      })
+
+      .addCase(removeAppointment.pending, (state) => {
+        state.deleting = true;
+        state.mutationError = null;
+      })
+
       .addCase(removeAppointment.fulfilled, (state, action) => {
         state.appointments = state.appointments.filter(
           (appointment) => String(appointment.id) !== String(action.payload),
         );
+      })
+
+      .addCase(removeAppointment.rejected, (state, action) => {
+        state.deleting = false;
+        state.mutationError =
+          action.error.message ?? "Failed to delete appointment";
       });
   },
 });
+
+export const { clearAppointmentMutationError } = appointmentsSlice.actions;
 
 export default appointmentsSlice.reducer;

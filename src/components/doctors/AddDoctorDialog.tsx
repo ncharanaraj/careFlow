@@ -51,6 +51,8 @@ interface AddDoctorDialogProps {
   departments: Department[];
   onDoctorAdded: (data: DoctorFormData) => void;
   doctor?: Doctor | null;
+  saving?: boolean;
+  mutationError?: string | null;
 }
 
 export default function AddDoctorDialog({
@@ -59,6 +61,8 @@ export default function AddDoctorDialog({
   departments,
   onDoctorAdded,
   doctor,
+  saving = false,
+  mutationError,
 }: AddDoctorDialogProps) {
   const {
     register,
@@ -121,10 +125,14 @@ export default function AddDoctorDialog({
     }
   };
 
-  const onSubmit = (data: DoctorFormData) => {
-    onDoctorAdded(data);
-    reset();
-    onOpenChange(false);
+  const onSubmit = async (data: DoctorFormData) => {
+    try {
+      await onDoctorAdded(data);
+      reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error adding doctor:", error);
+    }
   };
 
   return (
@@ -248,17 +256,24 @@ export default function AddDoctorDialog({
             </div>
           </div>
 
+          {mutationError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2">
+              <p className="text-sm text-red-600">{mutationError}</p>
+            </div>
+          )}
+
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
+              disabled={saving}
             >
               Cancel
             </Button>
 
-            <Button type="submit">
-              {doctor ? "Save Changes" : "Add Doctor"}
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : doctor ? "Save Changes" : "Add Doctor"}
             </Button>
           </DialogFooter>
         </form>
