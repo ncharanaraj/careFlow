@@ -9,6 +9,8 @@ import {
   getDoctors,
   getDepartments,
   createAppointment,
+  updateAppointment,
+  deleteAppointment,
 } from "@/services/appointmentService";
 
 import { getPatients } from "@/services/patientService";
@@ -57,6 +59,26 @@ export const addAppointment = createAsyncThunk(
   },
 );
 
+export const editAppointment = createAsyncThunk(
+  "appointments/editAppointment",
+  async ({
+    id,
+    appointment,
+  }: {
+    id: string;
+    appointment: Omit<Appointment, "id">;
+  }) => {
+    return await updateAppointment(id, appointment);
+  },
+);
+
+export const removeAppointment = createAsyncThunk(
+  "appointments/removeAppointment",
+  async (id: string) => {
+    return await deleteAppointment(id);
+  },
+);
+
 const appointmentsSlice = createSlice({
   name: "appointments",
   initialState,
@@ -87,6 +109,22 @@ const appointmentsSlice = createSlice({
 
       .addCase(addAppointment.fulfilled, (state, action) => {
         state.appointments.unshift(action.payload);
+      })
+
+      .addCase(editAppointment.fulfilled, (state, action) => {
+        const index = state.appointments.findIndex(
+          (appointment) => appointment.id === action.payload.id,
+        );
+
+        if (index !== -1) {
+          state.appointments[index] = action.payload;
+        }
+      })
+
+      .addCase(removeAppointment.fulfilled, (state, action) => {
+        state.appointments = state.appointments.filter(
+          (appointment) => String(appointment.id) !== String(action.payload),
+        );
       });
   },
 });

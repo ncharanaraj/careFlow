@@ -5,14 +5,17 @@ import type { RootState, AppDispatch } from "@/store/store";
 import {
   fetchAppointmentData,
   addAppointment,
+  editAppointment,
+  removeAppointment,
 } from "@/store/appointmentsSlice";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, MoreHorizontal } from "lucide-react";
 
 import AddAppointmentDialog from "@/components/appointments/AddAppointmentDialog";
 import type { AppointmentFormData } from "@/components/appointments/AddAppointmentDialog";
+import AppointmentDetailsDialog from "@/components/appointments/AppointmentDetailsDialog";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -22,6 +25,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import type { Appointment } from "@/types/appointment";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Appointments() {
   const [addAppointmentOpen, setAddAppointmentOpen] = useState(false);
@@ -30,6 +50,15 @@ export default function Appointments() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [appointmentToEdit, setAppointmentToEdit] =
+    useState<Appointment | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] =
+    useState<Appointment | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [appointmentToView, setAppointmentToView] =
+    useState<Appointment | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
 
   const { appointments, patients, doctors, departments, loading, error } =
     useSelector((state: RootState) => state.appointments);
@@ -82,6 +111,69 @@ export default function Appointments() {
 
     return matchesSearch && matchesStatus && matchesDepartment;
   });
+
+  const handleEditAppointment = (appointment: Appointment) => {
+    setAppointmentToEdit(appointment);
+    setEditOpen(true);
+  };
+
+  const handleAppointmentUpdated = async (data: AppointmentFormData) => {
+    if (!appointmentToEdit) return;
+
+    await dispatch(
+      editAppointment({
+        id: appointmentToEdit.id,
+        appointment: {
+          patientId: data.patientId,
+          doctorId: data.doctorId,
+          departmentId: data.departmentId,
+          appointmentDate: data.appointmentDate,
+          timeSlot: data.timeSlot,
+          status: appointmentToEdit.status,
+          createdAt: appointmentToEdit.createdAt,
+        },
+      }),
+    );
+
+    setAppointmentToEdit(null);
+    setEditOpen(false);
+  };
+
+  const handleCancelAppointment = async (appointment: Appointment) => {
+    await dispatch(
+      editAppointment({
+        id: appointment.id,
+        appointment: {
+          patientId: appointment.patientId,
+          doctorId: appointment.doctorId,
+          departmentId: appointment.departmentId,
+          appointmentDate: appointment.appointmentDate,
+          timeSlot: appointment.timeSlot,
+          status: "Cancelled",
+          createdAt: appointment.createdAt,
+        },
+      }),
+    );
+  };
+
+  const handleDeleteClick = (appointment: Appointment) => {
+    setAppointmentToDelete(appointment);
+    setDeleteOpen(true);
+  };
+
+  const handleDeleteAppointment = async () => {
+    if (!appointmentToDelete) return;
+
+    await dispatch(removeAppointment(appointmentToDelete.id));
+
+    setAppointmentToDelete(null);
+    setDeleteOpen(false);
+  };
+
+  const handleViewAppointment = (appointment: Appointment) => {
+    setAppointmentToView(appointment);
+    setViewOpen(true);
+  };
 
   const appointmentsPerPage = 3;
 
@@ -209,6 +301,10 @@ export default function Appointments() {
                     <th className="pb-3 font-medium text-slate-500">Time</th>
 
                     <th className="pb-3 font-medium text-slate-500">Status</th>
+
+                    <th className="pb-3 text-right font-medium text-slate-500">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
 
@@ -240,7 +336,54 @@ export default function Appointments() {
                         </td>
 
                         <td className="py-4">
-                          <Badge>{appointment.status}</Badge>
+                          <Badge
+                            variant={
+                              appointment.status === "Cancelled"
+                                ? "secondary"
+                                : "default"
+                            }
+                          >
+                            {appointment.status}
+                          </Badge>
+                        </td>
+
+                        <td className="py-4 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleViewAppointment(appointment)
+                                }
+                              >
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleEditAppointment(appointment)
+                                }
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleCancelAppointment(appointment)
+                                }
+                                disabled={appointment.status === "Cancelled"}
+                              >
+                                Cancel Appointment
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteClick(appointment)}
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </tr>
                     ))
@@ -304,6 +447,46 @@ export default function Appointments() {
         departments={departments}
         onAppointmentAdded={handleAppointmentAdded}
       />
+      <AppointmentDetailsDialog
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+        appointment={appointmentToView}
+        patients={patients}
+        doctors={doctors}
+        departments={departments}
+      />
+      <AddAppointmentDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        patients={patients}
+        doctors={doctors}
+        departments={departments}
+        onAppointmentAdded={handleAppointmentUpdated}
+        appointment={appointmentToEdit}
+      />
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete appointment?</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              This will permanently delete this appointment. This action cannot
+              be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={handleDeleteAppointment}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -33,7 +33,7 @@ export const getDepartments = async (): Promise<Department[]> => {
 };
 
 export const createAppointment = async (
-  appointment: Omit<Appointment, "id">
+  appointment: Omit<Appointment, "id">,
 ): Promise<Appointment> => {
   const response = await fetch(`${API_URL}/appointments`, {
     method: "POST",
@@ -48,4 +48,35 @@ export const createAppointment = async (
   }
 
   return response.json();
+};
+
+export const updateAppointment = async (
+  id: string,
+  appointment: Omit<Appointment, "id">,
+): Promise<Appointment> => {
+  const response = await fetch(`${API_URL}/appointments/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(appointment),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update appointment");
+  }
+
+  return response.json();
+};
+
+export const deleteAppointment = async (id: string): Promise<string> => {
+  const response = await fetch(`${API_URL}/appointments/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete appointment");
+  }
+
+  return id;
 };

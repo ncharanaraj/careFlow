@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 
 import type { Patient } from "@/types/patients";
-import type { Doctor, Department } from "@/types/appointment";
+import type { Doctor, Department, Appointment } from "@/types/appointment";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 
@@ -52,6 +52,7 @@ interface AddAppointmentDialogProps {
   doctors: Doctor[];
   departments: Department[];
   onAppointmentAdded: (data: AppointmentFormData) => void;
+  appointment?: Appointment | null;
 }
 
 export default function AddAppointmentDialog({
@@ -61,6 +62,7 @@ export default function AddAppointmentDialog({
   doctors,
   departments,
   onAppointmentAdded,
+  appointment,
 }: AddAppointmentDialogProps) {
   const {
     handleSubmit,
@@ -103,6 +105,28 @@ export default function AddAppointmentDialog({
     control,
     name: "appointmentDate",
   });
+
+  useEffect(() => {
+    if (open && appointment) {
+      reset({
+        patientId: String(appointment.patientId),
+        departmentId: String(appointment.departmentId),
+        doctorId: String(appointment.doctorId),
+        appointmentDate: appointment.appointmentDate,
+        timeSlot: appointment.timeSlot,
+      });
+    }
+
+    if (open && !appointment) {
+      reset({
+        patientId: "",
+        departmentId: "",
+        doctorId: "",
+        appointmentDate: "",
+        timeSlot: "",
+      });
+    }
+  }, [open, appointment, reset]);
 
   const filteredDoctors = useMemo(() => {
     return doctors.filter(
@@ -149,9 +173,13 @@ export default function AddAppointmentDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Appointment</DialogTitle>
+          <DialogTitle>
+            {appointment ? "Edit Appointment" : "Add Appointment"}
+          </DialogTitle>
           <DialogDescription>
-            Schedule a new patient appointment.
+            {appointment
+              ? "Update the appointment information."
+              : "Schedule a new patient appointment."}
           </DialogDescription>
         </DialogHeader>
 
@@ -364,7 +392,9 @@ export default function AddAppointmentDialog({
               Cancel
             </Button>
 
-            <Button type="submit">Add Appointment</Button>
+            <Button type="submit">
+              {appointment ? "Save Changes" : "Add Appointment"}
+            </Button>
           </div>
         </form>
       </DialogContent>
