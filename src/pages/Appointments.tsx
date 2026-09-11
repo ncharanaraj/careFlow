@@ -175,6 +175,18 @@ export default function Appointments() {
     setViewOpen(true);
   };
 
+  const handleCompleteAppointment = async (appointment: Appointment) => {
+    await dispatch(
+      editAppointment({
+        id: appointment.id,
+        appointment: {
+          ...appointment,
+          status: "Completed",
+        },
+      }),
+    );
+  };
+
   const appointmentsPerPage = 3;
 
   const totalPages = Math.ceil(
@@ -368,14 +380,25 @@ export default function Appointments() {
                               >
                                 Edit
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  handleCancelAppointment(appointment)
-                                }
-                                disabled={appointment.status === "Cancelled"}
-                              >
-                                Cancel Appointment
-                              </DropdownMenuItem>
+                              {appointment.status === "Scheduled" && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleCompleteAppointment(appointment)
+                                  }
+                                >
+                                  Mark as Completed
+                                </DropdownMenuItem>
+                              )}
+                              {appointment.status === "Scheduled" && (
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() =>
+                                    handleCancelAppointment(appointment)
+                                  }
+                                >
+                                  Cancel Appointment
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => handleDeleteClick(appointment)}

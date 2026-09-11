@@ -89,6 +89,16 @@
       "status": "Active",
       "createdAt": "2026-09-10T12:37:19.333Z",
       "id": "9nX-I2WxFJc"
+    },
+    {
+      "name": "Ganesh Madival",
+      "age": 28,
+      "gender": "Male",
+      "phone": "9876543213",
+      "bloodGroup": "B-",
+      "status": "Active",
+      "createdAt": "2026-09-11T06:59:19.920Z",
+      "id": "xDd3TcrECHs"
     }
   ],
   "departments": [
@@ -154,18 +164,29 @@
       "experience": 5,
       "status": "Active",
       "createdAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "name": "Swati N",
+      "departmentId": "O1BuuoVWc7I",
+      "specialization": "Pediatrition",
+      "phone": "9876543217",
+      "email": "swati@careflow.com",
+      "experience": 4,
+      "status": "Active",
+      "createdAt": "2026-09-11T07:01:17.674Z",
+      "id": "BhVHsdpTLiQ"
     }
   ],
   "appointments": [
     {
-      "id": "apt-1",
       "patientId": 1,
       "doctorId": "doc-1",
       "departmentId": "dep-1",
       "appointmentDate": "2026-09-12",
       "timeSlot": "10:00 AM",
-      "status": "Scheduled",
-      "createdAt": "2026-09-10T10:00:00.000Z"
+      "status": "Cancelled",
+      "createdAt": "2026-09-10T10:00:00.000Z",
+      "id": "apt-1"
     },
     {
       "patientId": "4",
@@ -191,11 +212,21 @@
       "patientId": "9nX-I2WxFJc",
       "doctorId": "doc-3",
       "departmentId": "dep-3",
-      "appointmentDate": "2026-09-30",
+      "appointmentDate": "2026-09-11",
       "timeSlot": "03:00 PM",
-      "status": "Scheduled",
+      "status": "Completed",
       "createdAt": "2026-09-10T18:09:30.248Z",
       "id": "G7EFXAmJfss"
+    },
+    {
+      "patientId": "xDd3TcrECHs",
+      "doctorId": "doc-1",
+      "departmentId": "dep-1",
+      "appointmentDate": "2026-09-11",
+      "timeSlot": "11:00 AM",
+      "status": "Cancelled",
+      "createdAt": "2026-09-11T06:59:41.427Z",
+      "id": "QVpL43ZQQiU"
     }
   ],
   "staff": [
@@ -242,6 +273,17 @@
       "status": "Active",
       "createdAt": "2026-09-11T06:39:59.979Z",
       "id": "rgQKMbIIQak"
+    },
+    {
+      "name": "Manoj V H",
+      "role": "Receptionist",
+      "departmentId": "dep-2",
+      "phone": "7899240475",
+      "email": "manoj@careflow.com",
+      "joiningDate": "2026-09-08",
+      "status": "Active",
+      "createdAt": "2026-09-11T07:02:12.098Z",
+      "id": "txPF9Q0j60A"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
