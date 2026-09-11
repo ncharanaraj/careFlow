@@ -138,17 +138,6 @@
       "experience": 5,
       "status": "Active",
       "createdAt": "2026-09-03T10:00:00.000Z"
-    },
-    {
-      "name": "Dr. Charan",
-      "departmentId": "dep-3",
-      "specialization": "MBBS",
-      "phone": "7899240476",
-      "email": "charan@careflow.com",
-      "experience": 10,
-      "status": "Active",
-      "createdAt": "2026-09-11T04:37:39.404Z",
-      "id": "TuWWbwMXlXE"
     }
   ],
   "appointments": [

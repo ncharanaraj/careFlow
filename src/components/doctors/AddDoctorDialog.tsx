@@ -2,7 +2,7 @@ import { useWatch, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-import type { Department } from "@/types/appointment";
+import type { Department, Doctor } from "@/types/appointment";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect } from "react";
 
 const doctorSchema = z.object({
   name: z.string().min(2, "Doctor name is required"),
@@ -49,6 +50,7 @@ interface AddDoctorDialogProps {
   onOpenChange: (open: boolean) => void;
   departments: Department[];
   onDoctorAdded: (data: DoctorFormData) => void;
+  doctor?: Doctor | null;
 }
 
 export default function AddDoctorDialog({
@@ -56,6 +58,7 @@ export default function AddDoctorDialog({
   onOpenChange,
   departments,
   onDoctorAdded,
+  doctor,
 }: AddDoctorDialogProps) {
   const {
     register,
@@ -81,6 +84,30 @@ export default function AddDoctorDialog({
     name: "departmentId",
   });
 
+  useEffect(() => {
+    if (open && doctor) {
+      reset({
+        name: doctor.name,
+        departmentId: String(doctor.departmentId),
+        specialization: doctor.specialization,
+        phone: doctor.phone,
+        email: doctor.email,
+        experience: String(doctor.experience),
+      });
+    }
+
+    if (open && !doctor) {
+      reset({
+        name: "",
+        departmentId: "",
+        specialization: "",
+        phone: "",
+        email: "",
+        experience: "",
+      });
+    }
+  }, [open, doctor, reset]);
+
   const departmentItems = departments.map((department) => ({
     label: department.name,
     value: String(department.id),
@@ -104,10 +131,12 @@ export default function AddDoctorDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Doctor</DialogTitle>
+          <DialogTitle>{doctor ? "Edit Doctor" : "Add Doctor"}</DialogTitle>
 
           <DialogDescription>
-            Add a new doctor to the hospital.
+            {doctor
+              ? "Update the doctor's information."
+              : "Add a new doctor to the hospital."}
           </DialogDescription>
         </DialogHeader>
 
@@ -228,7 +257,9 @@ export default function AddDoctorDialog({
               Cancel
             </Button>
 
-            <Button type="submit">Add Doctor</Button>
+            <Button type="submit">
+              {doctor ? "Save Changes" : "Add Doctor"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

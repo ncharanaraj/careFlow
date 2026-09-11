@@ -3,7 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { MoreHorizontal, Plus, Search } from "lucide-react";
 
 import type { AppDispatch, RootState } from "@/store/store";
-import { fetchDoctorData } from "@/store/doctorsSlice";
+import {
+  editDoctor,
+  fetchDoctorData,
+  removeDoctor,
+} from "@/store/doctorsSlice";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,8 +43,29 @@ import AddDoctorDialog, {
 
 import { addDoctor } from "@/store/doctorsSlice";
 
+import DoctorDetailsDialog from "@/components/doctors/DoctorDetailsDialog";
+import type { Doctor } from "@/types/appointment";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 export default function Doctors() {
   const [addDoctorOpen, setAddDoctorOpen] = useState(false);
+  const [doctorToView, setDoctorToView] = useState<Doctor | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [doctorToEdit, setDoctorToEdit] = useState<Doctor | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [doctorToDelete, setDoctorToDelete] = useState<Doctor | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const dispatch = useDispatch<AppDispatch>();
 
   const { doctors, departments, loading, error } = useSelector(
@@ -88,6 +113,64 @@ export default function Doctors() {
     );
   };
 
+  const handleViewDoctor = (doctor: Doctor) => {
+    setDoctorToView(doctor);
+    setViewOpen(true);
+  };
+
+  const handleEditDoctor = (doctor: Doctor) => {
+    setDoctorToEdit(doctor);
+    setEditOpen(true);
+  };
+
+  const handleDeleteClick = (doctor: Doctor) => {
+    setDoctorToDelete(doctor);
+    setDeleteOpen(true);
+  };
+
+  const handleDeleteDoctor = async () => {
+    if (!doctorToDelete) return;
+
+    await dispatch(removeDoctor(doctorToDelete.id));
+
+    setDoctorToDelete(null);
+    setDeleteOpen(false);
+  };
+
+  const handleDoctorUpdated = async (data: DoctorFormData) => {
+    if (!doctorToEdit) return;
+
+    await dispatch(
+      editDoctor({
+        id: doctorToEdit.id,
+        doctor: {
+          name: data.name,
+          departmentId: data.departmentId,
+          specialization: data.specialization,
+          phone: data.phone,
+          email: data.email,
+          experience: Number(data.experience),
+          status: doctorToEdit.status,
+          createdAt: doctorToEdit.createdAt,
+        },
+      }),
+    );
+
+    setDoctorToEdit(null);
+    setEditOpen(false);
+  };
+
+  const doctorsPerPage = 2;
+
+  const totalPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
+
+  const startIndex = (currentPage - 1) * doctorsPerPage;
+
+  const paginatedDoctors = filteredDoctors.slice(
+    startIndex,
+    startIndex + doctorsPerPage,
+  );
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -116,7 +199,10 @@ export default function Doctors() {
 
             <Input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search doctors..."
               className="pl-9"
             />
@@ -136,9 +222,10 @@ export default function Doctors() {
                 })),
               ]}
               value={departmentFilter}
-              onValueChange={(value) =>
-                setDepartmentFilter((value ?? "all") as string)
-              }
+              onValueChange={(value) => {
+                setDepartmentFilter((value ?? "all") as string);
+                setCurrentPage(1);
+              }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Department" />
@@ -186,8 +273,8 @@ export default function Doctors() {
               </TableHeader>
 
               <TableBody>
-                {filteredDoctors.length > 0 ? (
-                  filteredDoctors.map((doctor) => (
+                {paginatedDoctors.length > 0 ? (
+                  paginatedDoctors.map((doctor) => (
                     <TableRow key={doctor.id}>
                       {/* Doctor */}
                       <TableCell>
@@ -242,11 +329,22 @@ export default function Doctors() {
                           </DropdownMenuTrigger>
 
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>View</DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleViewDoctor(doctor)}
+                            >
+                              View
+                            </DropdownMenuItem>
 
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleEditDoctor(doctor)}
+                            >
+                              Edit
+                            </DropdownMenuItem>
 
-                            <DropdownMenuItem className="text-red-600">
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => handleDeleteClick(doctor)}
+                            >
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -266,6 +364,33 @@ export default function Doctors() {
                 )}
               </TableBody>
             </Table>
+            {filteredDoctors.length > 0 && (
+              <div className="mt-4 flex items-center justify-between border-t pt-4">
+                <p className="text-sm text-slate-500">
+                  Page {currentPage} of {totalPages}
+                </p>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((page) => page - 1)}
+                  >
+                    Previous
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((page) => page + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -275,6 +400,43 @@ export default function Doctors() {
         departments={departments}
         onDoctorAdded={handleDoctorAdded}
       />
+      <DoctorDetailsDialog
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+        doctor={doctorToView}
+        departments={departments}
+      />
+      <AddDoctorDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        departments={departments}
+        onDoctorAdded={handleDoctorUpdated}
+        doctor={doctorToEdit}
+      />
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete doctor?</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              This will permanently delete{" "}
+              <span className="font-medium">{doctorToDelete?.name}</span>. This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={handleDeleteDoctor}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

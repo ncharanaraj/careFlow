@@ -39,3 +39,36 @@ export const createDoctor = async (
 
   return response.json();
 };
+
+export const updateDoctor = async (
+  id: string | number,
+  doctor: Omit<Doctor, "id">,
+): Promise<Doctor> => {
+  const response = await fetch(`${API_URL}/doctors/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(doctor),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update doctor");
+  }
+
+  return response.json();
+};
+
+export const deleteDoctor = async (
+  id: string | number,
+): Promise<string | number> => {
+  const response = await fetch(`${API_URL}/doctors/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete doctor");
+  }
+
+  return id;
+};

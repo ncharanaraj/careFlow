@@ -6,6 +6,8 @@ import {
   getDoctors,
   getDepartments,
   createDoctor,
+  updateDoctor,
+  deleteDoctor,
 } from "@/services/doctorService";
 
 interface DoctorsState {
@@ -44,6 +46,26 @@ export const addDoctor = createAsyncThunk(
   },
 );
 
+export const editDoctor = createAsyncThunk(
+  "doctors/editDoctor",
+  async ({
+    id,
+    doctor,
+  }: {
+    id: string | number;
+    doctor: Omit<Doctor, "id">;
+  }) => {
+    return await updateDoctor(id, doctor);
+  },
+);
+
+export const removeDoctor = createAsyncThunk(
+  "doctors/removeDoctor",
+  async (id: string | number) => {
+    return await deleteDoctor(id);
+  },
+);
+
 const doctorsSlice = createSlice({
   name: "doctors",
   initialState,
@@ -73,6 +95,22 @@ const doctorsSlice = createSlice({
 
       .addCase(addDoctor.fulfilled, (state, action) => {
         state.doctors.unshift(action.payload);
+      })
+
+      .addCase(editDoctor.fulfilled, (state, action) => {
+        const index = state.doctors.findIndex(
+          (doctor) => String(doctor.id) === String(action.payload.id),
+        );
+
+        if (index !== -1) {
+          state.doctors[index] = action.payload;
+        }
+      })
+
+      .addCase(removeDoctor.fulfilled, (state, action) => {
+        state.doctors = state.doctors.filter(
+          (doctor) => String(doctor.id) !== String(action.payload),
+        );
       });
   },
 });
