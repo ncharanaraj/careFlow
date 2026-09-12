@@ -11,7 +11,12 @@ type Permission =
   | "appointment:delete"
   | "prescription:add"
   | "prescription:edit"
-  | "prescription:delete";
+  | "prescription:delete"
+  | "lab-report:add"
+  | "lab-report:edit"
+  | "lab-report:collect"
+  | "lab-report:complete"
+  | "lab-report:delete";
 
 const permissions: Record<UserRole, Permission[]> = {
   Admin: [
@@ -28,6 +33,12 @@ const permissions: Record<UserRole, Permission[]> = {
     "prescription:add",
     "prescription:edit",
     "prescription:delete",
+
+    "lab-report:add",
+    "lab-report:edit",
+    "lab-report:collect",
+    "lab-report:complete",
+    "lab-report:delete",
   ],
 
   Doctor: [
@@ -35,6 +46,9 @@ const permissions: Record<UserRole, Permission[]> = {
 
     "prescription:add",
     "prescription:edit",
+
+    "lab-report:add",
+    "lab-report:edit",
   ],
 
   Staff: [
@@ -44,6 +58,9 @@ const permissions: Record<UserRole, Permission[]> = {
     "appointment:add",
     "appointment:edit",
     "appointment:cancel",
+
+    "lab-report:collect",
+    "lab-report:complete",
   ],
 };
 

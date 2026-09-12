@@ -6,6 +6,7 @@ import departmentsReducer from "@/store/departmentsSlice";
 import staffReducer from "@/store/staffSlice";
 import authReducer from "@/store/authSlice";
 import prescriptionsReducer from "@/store/prescriptionsSlice";
+import labReportsReducer from "@/store/labReportsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     departments: departmentsReducer,
     staff: staffReducer,
     prescriptions: prescriptionsReducer,
+    labReports: labReportsReducer,
   },
 });
 

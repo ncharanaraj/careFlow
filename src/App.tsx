@@ -5,12 +5,13 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleRoute from "@/components/auth/RoleRoute";
 import LoadingState from "@/components/shared/LoadingState";
-import Prescriptions from "./pages/Prescriptions";
 
 const Login = lazy(() => import("@/pages/Login"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Patients = lazy(() => import("@/pages/Patients"));
 const Appointments = lazy(() => import("@/pages/Appointments"));
+const Prescriptions = lazy(() => import("@/pages/Prescriptions"));
+const LabReports = lazy(() => import("@/pages/LabReports"));
 const Doctors = lazy(() => import("@/pages/Doctors"));
 const Departments = lazy(() => import("@/pages/Departments"));
 const Staff = lazy(() => import("@/pages/Staff"));
@@ -64,15 +65,7 @@ export default function App() {
               <Route path="/patients" element={<Patients />} />
               <Route path="/appointments" element={<Appointments />} />
 
-              <Route
-                path="/lab-reports"
-                element={
-                  <PlaceholderPage
-                    title="Lab Reports"
-                    description="View and manage laboratory reports."
-                  />
-                }
-              />
+              <Route path="/lab-reports" element={<LabReports />} />
             </Route>
           </Route>
 

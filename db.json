@@ -386,5 +386,124 @@
       "id": "kFV4UZGNiAI"
     }
   ],
+  "labReports": [
+    {
+      "id": "lab-report-1",
+      "patientId": "3",
+      "appointmentId": "G7EFXAmJfss",
+      "doctorId": "doc-1",
+      "status": "Completed",
+      "tests": [
+        {
+          "id": "test-1",
+          "testName": "Hemoglobin",
+          "category": "Blood Test",
+          "result": "14.2",
+          "normalRange": "13.0 - 17.0",
+          "unit": "g/dL"
+        },
+        {
+          "id": "test-2",
+          "testName": "WBC Count",
+          "category": "Blood Test",
+          "result": "7200",
+          "normalRange": "4000 - 11000",
+          "unit": "cells/µL"
+        }
+      ],
+      "notes": "Results are within normal range.",
+      "orderedAt": "2026-09-12T09:30:00.000Z",
+      "completedAt": "2026-09-12T14:00:00.000Z"
+    },
+    {
+      "id": "9qTYKjRniOQ",
+      "patientId": "xDd3TcrECHs",
+      "appointmentId": "uy1PNaCBCww",
+      "doctorId": "doc-1",
+      "status": "Completed",
+      "tests": [
+        {
+          "id": "4a68dd8e-87f9-48ae-94dc-ce6ca31e6082",
+          "testName": "RBC",
+          "category": "Blood Test",
+          "result": "14.2",
+          "normalRange": "14",
+          "unit": "g/dl"
+        }
+      ],
+      "notes": "",
+      "orderedAt": "2026-09-12T17:57:07.519Z",
+      "collectedAt": "2026-09-12T18:29:15.106Z",
+      "completedAt": "2026-09-12T18:29:52.891Z"
+    },
+    {
+      "id": "KZ9Yx9NegBA",
+      "patientId": "3",
+      "appointmentId": "G7EFXAmJfss",
+      "doctorId": "doc-1",
+      "status": "Completed",
+      "tests": [
+        {
+          "id": "eb4de53e-9c70-48e7-8b51-7801497c11a8",
+          "testName": "WBC",
+          "category": "Blood Test",
+          "result": "14.2",
+          "normalRange": "14",
+          "unit": "g/dl"
+        }
+      ],
+      "notes": "",
+      "orderedAt": "2026-09-12T18:12:55.000Z",
+      "collectedAt": "2026-09-12T18:53:00.225Z",
+      "completedAt": "2026-09-12T18:53:16.159Z"
+    },
+    {
+      "id": "JtM6AfjOCWY",
+      "patientId": "6",
+      "appointmentId": "3uFjiZYa4YM",
+      "doctorId": "doc-1",
+      "status": "Sample Collected",
+      "tests": [
+        {
+          "id": "11f46a69-54d4-45d8-ba73-2e6720150596",
+          "testName": "WBC",
+          "category": "Blood Test",
+          "result": "",
+          "normalRange": "",
+          "unit": ""
+        },
+        {
+          "id": "e89c0b8e-e802-497d-bf78-da2c6cce1730",
+          "testName": "RBC",
+          "category": "Blood Test",
+          "result": "",
+          "normalRange": "",
+          "unit": ""
+        }
+      ],
+      "notes": "",
+      "orderedAt": "2026-09-12T18:53:57.076Z",
+      "collectedAt": "2026-09-12T18:54:38.136Z"
+    },
+    {
+      "patientId": "xDd3TcrECHs",
+      "appointmentId": "uy1PNaCBCww",
+      "doctorId": "doc-1",
+      "status": "Ordered",
+      "tests": [
+        {
+          "id": "4400675b-c0ac-4c6e-89c8-72ab853e52ba",
+          "testName": "Vitamins",
+          "category": "Blood Test",
+          "result": "",
+          "normalRange": "",
+          "unit": ""
+        }
+      ],
+      "notes": "",
+      "orderedAt": "2026-09-12T18:55:54.274Z",
+      "id": "r3LXQvG2O84"
+    }
+  ],
   "$schema": "./node_modules/json-server/schema.json"
 }
