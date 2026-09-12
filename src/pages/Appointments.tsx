@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
+import { hasPermission } from "@/config/permissions";
 
 export default function Appointments() {
   const [addAppointmentOpen, setAddAppointmentOpen] = useState(false);
@@ -252,6 +253,21 @@ export default function Appointments() {
     startIndex + appointmentsPerPage,
   );
 
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  const canAddAppointment = hasPermission(user?.role, "appointment:add");
+
+  const canEditAppointment = hasPermission(user?.role, "appointment:edit");
+
+  const canCompleteAppointment = hasPermission(
+    user?.role,
+    "appointment:complete",
+  );
+
+  const canCancelAppointment = hasPermission(user?.role, "appointment:cancel");
+
+  const canDeleteAppointment = hasPermission(user?.role, "appointment:delete");
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -265,10 +281,12 @@ export default function Appointments() {
           </p>
         </div>
 
-        <Button onClick={handleAddAppointment}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Appointment
-        </Button>
+        {canAddAppointment && (
+          <Button onClick={handleAddAppointment}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Appointment
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -424,36 +442,44 @@ export default function Appointments() {
                               >
                                 View
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  handleEditAppointment(appointment)
-                                }
-                              >
-                                Edit
-                              </DropdownMenuItem>
-                              {appointment.status === "Scheduled" && (
+                              {canEditAppointment && (
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    handleCompleteClick(appointment)
+                                    handleEditAppointment(appointment)
                                   }
                                 >
-                                  Mark as Completed
+                                  Edit
                                 </DropdownMenuItem>
                               )}
-                              {appointment.status === "Scheduled" && (
+                              {canCompleteAppointment &&
+                                appointment.status === "Scheduled" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleCompleteClick(appointment)
+                                    }
+                                  >
+                                    Mark as Completed
+                                  </DropdownMenuItem>
+                                )}
+                              {canCancelAppointment &&
+                                appointment.status === "Scheduled" && (
+                                  <DropdownMenuItem
+                                    className="text-red-600"
+                                    onClick={() =>
+                                      handleCancelClick(appointment)
+                                    }
+                                  >
+                                    Cancel Appointment
+                                  </DropdownMenuItem>
+                                )}
+                              {canDeleteAppointment && (
                                 <DropdownMenuItem
                                   className="text-red-600"
-                                  onClick={() => handleCancelClick(appointment)}
+                                  onClick={() => handleDeleteClick(appointment)}
                                 >
-                                  Cancel Appointment
+                                  Delete
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDeleteClick(appointment)}
-                              >
-                                Delete
-                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>

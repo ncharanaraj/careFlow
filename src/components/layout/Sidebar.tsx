@@ -10,22 +10,75 @@ import {
   Settings,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-const mainMenu = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { label: "Patients", icon: Users, path: "/patients" },
-  { label: "Appointments", icon: CalendarDays, path: "/appointments" },
-  { label: "Prescriptions", icon: Pill, path: "/prescriptions" },
-  { label: "Lab Reports", icon: FileText, path: "/lab-reports" },
+import type { RootState } from "@/store/store";
+import type { UserRole } from "@/types/auth";
+
+interface NavItem {
+  label: string;
+  icon: React.ElementType;
+  path: string;
+  roles: UserRole[];
+}
+
+const mainMenu: NavItem[] = [
+  {
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/dashboard",
+    roles: ["Admin", "Doctor", "Staff"],
+  },
+  {
+    label: "Patients",
+    icon: Users,
+    path: "/patients",
+    roles: ["Admin", "Doctor", "Staff"],
+  },
+  {
+    label: "Appointments",
+    icon: CalendarDays,
+    path: "/appointments",
+    roles: ["Admin", "Doctor", "Staff"],
+  },
+  {
+    label: "Prescriptions",
+    icon: Pill,
+    path: "/prescriptions",
+    roles: ["Admin", "Doctor"],
+  },
+  {
+    label: "Lab Reports",
+    icon: FileText,
+    path: "/lab-reports",
+    roles: ["Admin", "Doctor", "Staff"],
+  },
 ];
 
-const managementMenu = [
-  { label: "Doctors", icon: Stethoscope, path: "/doctors" },
-  { label: "Departments", icon: Building2, path: "/departments" },
-  { label: "Staff", icon: UserCog, path: "/staff" },
+const managementMenu: NavItem[] = [
+  {
+    label: "Doctors",
+    icon: Stethoscope,
+    path: "/doctors",
+    roles: ["Admin"],
+  },
+  {
+    label: "Departments",
+    icon: Building2,
+    path: "/departments",
+    roles: ["Admin"],
+  },
+  {
+    label: "Staff",
+    icon: UserCog,
+    path: "/staff",
+    roles: ["Admin"],
+  },
 ];
 
 export default function Sidebar() {
+  const user = useSelector((state: RootState) => state.auth.user);
+
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r bg-white">
       {/* Logo */}
@@ -35,9 +88,7 @@ export default function Sidebar() {
             C
           </div>
 
-          <span className="text-lg font-semibold text-slate-900">
-            CareFlow
-          </span>
+          <span className="text-lg font-semibold text-slate-900">CareFlow</span>
         </div>
       </div>
 
@@ -50,10 +101,9 @@ export default function Sidebar() {
           </p>
 
           <div className="space-y-1">
-            {mainMenu.map((item) => {
-              const Icon = item.icon;
-
-              return (
+            {mainMenu
+              .filter((item) => user && item.roles.includes(user.role))
+              .map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
@@ -65,11 +115,10 @@ export default function Sidebar() {
                     }`
                   }
                 >
-                  <Icon className="h-4 w-4" />
+                  <item.icon className="h-4 w-4" />
                   {item.label}
                 </NavLink>
-              );
-            })}
+              ))}
           </div>
         </div>
 
@@ -80,46 +129,50 @@ export default function Sidebar() {
           </p>
 
           <div className="space-y-1">
-            {managementMenu.map((item) => {
-              const Icon = item.icon;
+            {managementMenu
+              .filter((item) => user && item.roles.includes(user.role))
+              .map((item) => {
+                const Icon = item.icon;
 
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                      isActive
-                        ? "bg-slate-100 font-medium text-slate-900"
-                        : "text-slate-600 hover:bg-slate-50"
-                    }`
-                  }
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </NavLink>
-              );
-            })}
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                        isActive
+                          ? "bg-slate-100 font-medium text-slate-900"
+                          : "text-slate-600 hover:bg-slate-50"
+                      }`
+                    }
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </NavLink>
+                );
+              })}
           </div>
         </div>
       </nav>
 
       {/* Settings */}
-      <div className="border-t p-4">
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-              isActive
-                ? "bg-slate-100 font-medium text-slate-900"
-                : "text-slate-600 hover:bg-slate-50"
-            }`
-          }
-        >
-          <Settings className="h-4 w-4" />
-          Settings
-        </NavLink>
-      </div>
+      {user?.role === "Admin" && (
+        <div className="border-t p-4">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                isActive
+                  ? "bg-slate-100 font-medium text-slate-900"
+                  : "text-slate-600 hover:bg-slate-50"
+              }`
+            }
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </NavLink>
+        </div>
+      )}
     </aside>
   );
 }

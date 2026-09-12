@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import LoadingState from "@/components/shared/LoadingState";
 import ErrorState from "@/components/shared/ErrorState";
+import { hasPermission } from "@/config/permissions";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
@@ -167,6 +168,14 @@ export default function Patients() {
     }
   };
 
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  const canAddPatient = hasPermission(user?.role, "patient:add");
+
+  const canEditPatient = hasPermission(user?.role, "patient:edit");
+
+  const canDeletePatient = hasPermission(user?.role, "patient:delete");
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -179,10 +188,12 @@ export default function Patients() {
           </p>
         </div>
 
-        <Button onClick={handleAddPatient}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Patient
-        </Button>
+        {canAddPatient && (
+          <Button onClick={handleAddPatient}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Patient
+          </Button>
+        )}
       </div>
 
       {/* Patient Card */}
@@ -286,18 +297,22 @@ export default function Patients() {
                                   View
                                 </DropdownMenuItem>
 
-                                <DropdownMenuItem
-                                  onClick={() => handleEditPatient(patient)}
-                                >
-                                  Edit
-                                </DropdownMenuItem>
+                                {canEditPatient && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleEditPatient(patient)}
+                                  >
+                                    Edit
+                                  </DropdownMenuItem>
+                                )}
 
-                                <DropdownMenuItem
-                                  className="text-red-600"
-                                  onClick={() => handleDeletePatient(patient)}
-                                >
-                                  Delete
-                                </DropdownMenuItem>
+                                {canDeletePatient && (
+                                  <DropdownMenuItem
+                                    className="text-red-600"
+                                    onClick={() => handleDeletePatient(patient)}
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </td>

@@ -4,9 +4,12 @@ import appointmentsReducer from "./appointmentsSlice";
 import doctorsReducer from "./doctorsSlice";
 import departmentsReducer from "./departmentsSlice";
 import staffReducer from "./staffSlice";
+import authReducer from "./authSlice";
 
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
+
     patients: patientsReducer,
     appointments: appointmentsReducer,
     doctors: doctorsReducer,

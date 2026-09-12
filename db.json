@@ -207,6 +207,16 @@
       "status": "Completed",
       "createdAt": "2026-09-11T15:56:28.311Z",
       "id": "uy1PNaCBCww"
+    },
+    {
+      "patientId": "6",
+      "doctorId": "doc-2",
+      "departmentId": "dep-2",
+      "appointmentDate": "2026-09-12",
+      "timeSlot": "11:00 AM",
+      "status": "Scheduled",
+      "createdAt": "2026-09-12T02:52:25.808Z",
+      "id": "3uFjiZYa4YM"
     }
   ],
   "staff": [
@@ -264,6 +274,29 @@
       "status": "Active",
       "createdAt": "2026-09-11T07:02:12.098Z",
       "id": "txPF9Q0j60A"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-1",
+      "name": "Charan",
+      "email": "admin@careflow.com",
+      "password": "admin123",
+      "role": "Admin"
+    },
+    {
+      "id": "user-2",
+      "name": "Dr. Arjun Rao",
+      "email": "doctor@careflow.com",
+      "password": "doctor123",
+      "role": "Doctor"
+    },
+    {
+      "id": "user-3",
+      "name": "Anita Kulkarni",
+      "email": "staff@careflow.com",
+      "password": "staff123",
+      "role": "Staff"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
