@@ -12,7 +12,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MoreHorizontal } from "lucide-react";
+import { Plus, MoreHorizontal, Search } from "lucide-react";
 
 import AddAppointmentDialog from "@/components/appointments/AddAppointmentDialog";
 import type { AppointmentFormData } from "@/components/appointments/AddAppointmentDialog";
@@ -46,6 +46,15 @@ import {
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
 import { hasPermission } from "@/config/permissions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import PageHeader from "@/components/shared/PageHeader";
 
 export default function Appointments() {
   const [addAppointmentOpen, setAddAppointmentOpen] = useState(false);
@@ -242,8 +251,9 @@ export default function Appointments() {
 
   const appointmentsPerPage = 3;
 
-  const totalPages = Math.ceil(
-    filteredAppointments.length / appointmentsPerPage,
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredAppointments.length / appointmentsPerPage),
   );
 
   const startIndex = (currentPage - 1) * appointmentsPerPage;
@@ -270,24 +280,18 @@ export default function Appointments() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            Appointments
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Manage hospital appointments.
-          </p>
-        </div>
-
-        {canAddAppointment && (
-          <Button onClick={handleAddAppointment}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Appointment
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Appointments"
+        description="Manage hospital appointments."
+        action={
+          canAddAppointment && (
+            <Button onClick={handleAddAppointment}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Appointment
+            </Button>
+          )
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -303,200 +307,220 @@ export default function Appointments() {
               onRetry={() => dispatch(fetchAppointmentData())}
             />
           ) : (
-            <div className="overflow-x-auto">
-              <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
-                <Input
-                  placeholder="Search patient or doctor..."
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="md:max-w-sm"
-                />
+            <>
+              <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    placeholder="Search patient or doctor..."
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="pl-9"
+                  />
+                </div>
 
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    setStatusFilter((value ?? "all") as string);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
+                <div className="w-full lg:w-56">
+                  <Select
+                    items={[
+                      {
+                        label: "All Status",
+                        value: "all",
+                      },
+                      {
+                        label: "Scheduled",
+                        value: "Scheduled",
+                      },
+                      {
+                        label: "Completed",
+                        value: "Completed",
+                      },
+                      {
+                        label: "Cancelled",
+                        value: "Cancelled",
+                      },
+                    ]}
+                    value={statusFilter}
+                    onValueChange={(value) => {
+                      setStatusFilter((value ?? "all") as string);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
 
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="Scheduled">Scheduled</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="Scheduled">Scheduled</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <Select
-                  items={[
-                    { label: "All Departments", value: "all" },
-                    ...departments.map((department) => ({
-                      label: department.name,
-                      value: String(department.id),
-                    })),
-                  ]}
-                  value={departmentFilter}
-                  onValueChange={(value) => {
-                    setDepartmentFilter((value ?? "all") as string);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-full md:w-56">
-                    <SelectValue placeholder="Department" />
-                  </SelectTrigger>
+                <div className="w-full lg:w-44">
+                  <Select
+                    items={[
+                      { label: "All Departments", value: "all" },
+                      ...departments.map((department) => ({
+                        label: department.name,
+                        value: String(department.id),
+                      })),
+                    ]}
+                    value={departmentFilter}
+                    onValueChange={(value) => {
+                      setDepartmentFilter((value ?? "all") as string);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Department" />
+                    </SelectTrigger>
 
-                  <SelectContent>
-                    <SelectItem value="all">All Departments</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="all">All Departments</SelectItem>
 
-                    {departments.map((department) => (
-                      <SelectItem
-                        key={department.id}
-                        value={String(department.id)}
-                      >
-                        {department.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      {departments.map((department) => (
+                        <SelectItem
+                          key={department.id}
+                          value={String(department.id)}
+                        >
+                          {department.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left">
-                    <th className="pb-3 font-medium text-slate-500">Patient</th>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Patient</TableHead>
+                      <TableHead>Doctor</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Time</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-                    <th className="pb-3 font-medium text-slate-500">Doctor</th>
+                  <TableBody>
+                    {paginatedAppointments.length > 0 ? (
+                      paginatedAppointments.map((appointment) => (
+                        <TableRow key={appointment.id}>
+                          <TableCell className="py-4 font-medium">
+                            {getPatientName(appointment.patientId)}
+                          </TableCell>
 
-                    <th className="pb-3 font-medium text-slate-500">
-                      Department
-                    </th>
+                          <TableCell className="py-4 text-slate-600">
+                            {getDoctorName(appointment.doctorId)}
+                          </TableCell>
 
-                    <th className="pb-3 font-medium text-slate-500">Date</th>
+                          <TableCell className="py-4 text-slate-600">
+                            {getDepartmentName(appointment.departmentId)}
+                          </TableCell>
 
-                    <th className="pb-3 font-medium text-slate-500">Time</th>
+                          <TableCell className="py-4 text-slate-600">
+                            {appointment.appointmentDate}
+                          </TableCell>
 
-                    <th className="pb-3 font-medium text-slate-500">Status</th>
+                          <TableCell className="py-4 text-slate-600">
+                            {appointment.timeSlot}
+                          </TableCell>
 
-                    <th className="pb-3 text-right font-medium text-slate-500">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
+                          <TableCell className="py-4">
+                            <Badge
+                              variant={
+                                appointment.status === "Cancelled"
+                                  ? "secondary"
+                                  : "default"
+                              }
+                            >
+                              {appointment.status}
+                            </Badge>
+                          </TableCell>
 
-                <tbody>
-                  {paginatedAppointments.length > 0 ? (
-                    paginatedAppointments.map((appointment) => (
-                      <tr
-                        key={appointment.id}
-                        className="border-b last:border-0"
-                      >
-                        <td className="py-4 font-medium text-slate-900">
-                          {getPatientName(appointment.patientId)}
-                        </td>
+                          <TableCell className="py-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </DropdownMenuTrigger>
 
-                        <td className="py-4 text-slate-600">
-                          {getDoctorName(appointment.doctorId)}
-                        </td>
-
-                        <td className="py-4 text-slate-600">
-                          {getDepartmentName(appointment.departmentId)}
-                        </td>
-
-                        <td className="py-4 text-slate-600">
-                          {appointment.appointmentDate}
-                        </td>
-
-                        <td className="py-4 text-slate-600">
-                          {appointment.timeSlot}
-                        </td>
-
-                        <td className="py-4">
-                          <Badge
-                            variant={
-                              appointment.status === "Cancelled"
-                                ? "secondary"
-                                : "default"
-                            }
-                          >
-                            {appointment.status}
-                          </Badge>
-                        </td>
-
-                        <td className="py-4 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  handleViewAppointment(appointment)
-                                }
-                              >
-                                View
-                              </DropdownMenuItem>
-                              {canEditAppointment && (
+                              <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    handleEditAppointment(appointment)
+                                    handleViewAppointment(appointment)
                                   }
                                 >
-                                  Edit
+                                  View
                                 </DropdownMenuItem>
-                              )}
-                              {canCompleteAppointment &&
-                                appointment.status === "Scheduled" && (
+
+                                {canEditAppointment && (
                                   <DropdownMenuItem
                                     onClick={() =>
-                                      handleCompleteClick(appointment)
+                                      handleEditAppointment(appointment)
                                     }
                                   >
-                                    Mark as Completed
+                                    Edit
                                   </DropdownMenuItem>
                                 )}
-                              {canCancelAppointment &&
-                                appointment.status === "Scheduled" && (
+
+                                {canCompleteAppointment &&
+                                  appointment.status === "Scheduled" && (
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleCompleteClick(appointment)
+                                      }
+                                    >
+                                      Mark as Completed
+                                    </DropdownMenuItem>
+                                  )}
+
+                                {canCancelAppointment &&
+                                  appointment.status === "Scheduled" && (
+                                    <DropdownMenuItem
+                                      className="text-red-600"
+                                      onClick={() =>
+                                        handleCancelClick(appointment)
+                                      }
+                                    >
+                                      Cancel Appointment
+                                    </DropdownMenuItem>
+                                  )}
+
+                                {canDeleteAppointment && (
                                   <DropdownMenuItem
                                     className="text-red-600"
                                     onClick={() =>
-                                      handleCancelClick(appointment)
+                                      handleDeleteClick(appointment)
                                     }
                                   >
-                                    Cancel Appointment
+                                    Delete
                                   </DropdownMenuItem>
                                 )}
-                              {canDeleteAppointment && (
-                                <DropdownMenuItem
-                                  className="text-red-600"
-                                  onClick={() => handleDeleteClick(appointment)}
-                                >
-                                  Delete
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="py-10 text-center text-sm text-slate-500"
-                      >
-                        No appointments found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={7}
+                          className="h-24 text-center text-slate-500"
+                        >
+                          No appointments found.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
               {filteredAppointments.length > 0 && (
                 <div className="mt-4 flex items-center justify-between border-t pt-4">
                   <p className="text-sm text-slate-500">
@@ -533,7 +557,7 @@ export default function Appointments() {
                   </div>
                 </div>
               )}
-            </div>
+            </>
           )}
         </CardContent>
       </Card>

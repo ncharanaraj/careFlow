@@ -8,6 +8,7 @@ import {
   editDoctor,
   fetchDoctorData,
   removeDoctor,
+  addDoctor,
 } from "@/store/doctorsSlice";
 
 import { Button } from "@/components/ui/button";
@@ -42,8 +43,6 @@ import AddDoctorDialog, {
   type DoctorFormData,
 } from "@/components/doctors/AddDoctorDialog";
 
-import { addDoctor } from "@/store/doctorsSlice";
-
 import DoctorDetailsDialog from "@/components/doctors/DoctorDetailsDialog";
 import type { Doctor } from "@/types/appointment";
 import {
@@ -58,6 +57,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PageHeader from "@/components/shared/PageHeader";
 
 export default function Doctors() {
   const [addDoctorOpen, setAddDoctorOpen] = useState(false);
@@ -178,8 +179,10 @@ export default function Doctors() {
 
   const doctorsPerPage = 2;
 
-  const totalPages = Math.ceil(filteredDoctors.length / doctorsPerPage);
-
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredDoctors.length / doctorsPerPage),
+  );
   const startIndex = (currentPage - 1) * doctorsPerPage;
 
   const paginatedDoctors = filteredDoctors.slice(
@@ -190,223 +193,238 @@ export default function Doctors() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Doctors</h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Manage hospital doctors and department assignments.
-          </p>
-        </div>
-
-        <Button onClick={handleAddDoctor}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Doctor
-        </Button>
-      </div>
+      <PageHeader
+        title="Doctors"
+        description="Manage hospital doctors and department assignments."
+        action={
+          <Button onClick={handleAddDoctor}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Doctor
+          </Button>
+        }
+      />
 
       {/* Main Content */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">All Doctors</CardTitle>
+        </CardHeader>
         {/* Search & Filters */}
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <CardContent>
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 
-            <Input
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search doctors..."
-              className="pl-9"
+              <Input
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search doctors..."
+                className="pl-9"
+              />
+            </div>
+
+            {/* Department Filter */}
+            <div className="w-full sm:w-56">
+              <Select
+                items={[
+                  {
+                    label: "All Departments",
+                    value: "all",
+                  },
+                  ...departments.map((department) => ({
+                    label: department.name,
+                    value: String(department.id),
+                  })),
+                ]}
+                value={departmentFilter}
+                onValueChange={(value) => {
+                  setDepartmentFilter((value ?? "all") as string);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+
+                  {departments.map((department) => (
+                    <SelectItem
+                      key={department.id}
+                      value={String(department.id)}
+                    >
+                      {department.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {loading && <LoadingState message="Loading doctors..." />}
+
+          {!loading && error && (
+            <ErrorState
+              message={error}
+              onRetry={() => dispatch(fetchDoctorData())}
             />
-          </div>
+          )}
 
-          {/* Department Filter */}
-          <div className="w-full sm:w-56">
-            <Select
-              items={[
-                {
-                  label: "All Departments",
-                  value: "all",
-                },
-                ...departments.map((department) => ({
-                  label: department.name,
-                  value: String(department.id),
-                })),
-              ]}
-              value={departmentFilter}
-              onValueChange={(value) => {
-                setDepartmentFilter((value ?? "all") as string);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Department" />
-              </SelectTrigger>
+          {/* Table */}
+          {!loading && !error && (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Doctor</TableHead>
+                    <TableHead>Specialization</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Experience</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
 
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
+                <TableBody>
+                  {paginatedDoctors.length > 0 ? (
+                    paginatedDoctors.map((doctor) => (
+                      <TableRow key={doctor.id}>
+                        {/* Doctor */}
+                        <TableCell className="py-4">
+                          <div>
+                            <p className="font-medium text-slate-900">
+                              {doctor.name}
+                            </p>
 
-                {departments.map((department) => (
-                  <SelectItem key={department.id} value={String(department.id)}>
-                    {department.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+                            <p className="text-xs text-slate-500">
+                              {doctor.email}
+                            </p>
+                          </div>
+                        </TableCell>
 
-        {loading && <LoadingState message="Loading doctors..." />}
+                        {/* Specialization */}
+                        <TableCell className="py-4 text-slate-600">
+                          {doctor.specialization}
+                        </TableCell>
 
-        {!loading && error && (
-          <ErrorState
-            message={error}
-            onRetry={() => dispatch(fetchDoctorData())}
-          />
-        )}
+                        {/* Department */}
+                        <TableCell className="py-4 text-slate-600">
+                          {getDepartmentName(doctor.departmentId)}
+                        </TableCell>
 
-        {/* Table */}
-        {!loading && !error && (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Doctor</TableHead>
-                  <TableHead>Specialization</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Experience</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+                        {/* Experience */}
+                        <TableCell className="py-4 text-slate-600">
+                          {doctor.experience}{" "}
+                          {doctor.experience === 1 ? "year" : "years"}
+                        </TableCell>
 
-              <TableBody>
-                {paginatedDoctors.length > 0 ? (
-                  paginatedDoctors.map((doctor) => (
-                    <TableRow key={doctor.id}>
-                      {/* Doctor */}
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-slate-900">
-                            {doctor.name}
-                          </p>
+                        {/* Phone */}
+                        <TableCell className="py-4 text-slate-600">
+                          {doctor.phone}
+                        </TableCell>
 
-                          <p className="text-xs text-slate-500">
-                            {doctor.email}
-                          </p>
-                        </div>
-                      </TableCell>
+                        {/* Status */}
+                        <TableCell className="py-4">
+                          <Badge
+                            variant={
+                              doctor.status === "Active"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {doctor.status}
+                          </Badge>
+                        </TableCell>
 
-                      {/* Specialization */}
-                      <TableCell className="text-slate-600">
-                        {doctor.specialization}
-                      </TableCell>
+                        {/* Actions */}
+                        <TableCell className="py-4 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </DropdownMenuTrigger>
 
-                      {/* Department */}
-                      <TableCell className="text-slate-600">
-                        {getDepartmentName(doctor.departmentId)}
-                      </TableCell>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleViewDoctor(doctor)}
+                              >
+                                View
+                              </DropdownMenuItem>
 
-                      {/* Experience */}
-                      <TableCell className="text-slate-600">
-                        {doctor.experience}{" "}
-                        {doctor.experience === 1 ? "year" : "years"}
-                      </TableCell>
+                              <DropdownMenuItem
+                                onClick={() => handleEditDoctor(doctor)}
+                              >
+                                Edit
+                              </DropdownMenuItem>
 
-                      {/* Phone */}
-                      <TableCell className="text-slate-600">
-                        {doctor.phone}
-                      </TableCell>
-
-                      {/* Status */}
-                      <TableCell>
-                        <Badge
-                          variant={
-                            doctor.status === "Active" ? "default" : "secondary"
-                          }
-                        >
-                          {doctor.status}
-                        </Badge>
-                      </TableCell>
-
-                      {/* Actions */}
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </DropdownMenuTrigger>
-
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleViewDoctor(doctor)}
-                            >
-                              View
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                              onClick={() => handleEditDoctor(doctor)}
-                            >
-                              Edit
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => handleDeleteClick(doctor)}
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteClick(doctor)}
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        className="h-32 text-center text-slate-500"
+                      >
+                        No doctors found.
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="h-32 text-center text-slate-500"
+                  )}
+                </TableBody>
+              </Table>
+              {filteredDoctors.length > 0 && (
+                <div className="mt-4 flex items-center justify-between border-t pt-4">
+                  <p className="text-sm text-slate-500">
+                    Showing {startIndex + 1}–
+                    {Math.min(
+                      startIndex + doctorsPerPage,
+                      filteredDoctors.length,
+                    )}{" "}
+                    of {filteredDoctors.length}
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((page) => page - 1)}
                     >
-                      No doctors found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            {filteredDoctors.length > 0 && (
-              <div className="mt-4 flex items-center justify-between border-t pt-4">
-                <p className="text-sm text-slate-500">
-                  Page {currentPage} of {totalPages}
-                </p>
+                      Previous
+                    </Button>
 
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((page) => page - 1)}
-                  >
-                    Previous
-                  </Button>
+                    <span className="text-sm text-slate-600">
+                      Page {currentPage} of {totalPages}
+                    </span>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((page) => page + 1)}
-                  >
-                    Next
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((page) => page + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
       <AddDoctorDialog
         open={addDoctorOpen}
         onOpenChange={setAddDoctorOpen}

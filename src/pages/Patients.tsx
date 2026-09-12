@@ -36,6 +36,15 @@ import {
 import LoadingState from "@/components/shared/LoadingState";
 import ErrorState from "@/components/shared/ErrorState";
 import { hasPermission } from "@/config/permissions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import PageHeader from "@/components/shared/PageHeader";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
@@ -71,7 +80,10 @@ export default function Patients() {
 
   // Pagination logic
   const patientsPerPage = 3;
-  const totalPages = Math.ceil(filteredPatients.length / patientsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredPatients.length / patientsPerPage),
+  );
 
   const startIndex = (currentPage - 1) * patientsPerPage;
 
@@ -179,22 +191,18 @@ export default function Patients() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Patients</h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Manage patient records and information.
-          </p>
-        </div>
-
-        {canAddPatient && (
-          <Button onClick={handleAddPatient}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Patient
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Patients"
+        description="Manage patient records and information."
+        action={
+          canAddPatient && (
+            <Button onClick={handleAddPatient}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Patient
+            </Button>
+          )
+        }
+      />
 
       {/* Patient Card */}
       <Card>
@@ -228,52 +236,44 @@ export default function Patients() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left">
-                      <th className="pb-3 font-medium text-slate-500">
-                        Patient
-                      </th>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Patient</TableHead>
+                      <TableHead>Age</TableHead>
+                      <TableHead>Gender</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Blood Group</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-                      <th className="pb-3 font-medium text-slate-500">Age</th>
-
-                      <th className="pb-3 font-medium text-slate-500">
-                        Gender
-                      </th>
-
-                      <th className="pb-3 font-medium text-slate-500">Phone</th>
-
-                      <th className="pb-3 font-medium text-slate-500">
-                        Blood Group
-                      </th>
-
-                      <th className="pb-3 font-medium text-slate-500">
-                        Status
-                      </th>
-
-                      <th className="pb-3 text-right font-medium text-slate-500">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                  <TableBody>
                     {paginatedPatients.length > 0 ? (
                       paginatedPatients.map((patient) => (
-                        <tr key={patient.id} className="border-b last:border-0">
-                          <td className="py-4 font-medium text-slate-900">
+                        <TableRow key={patient.id}>
+                          <TableCell className="py-4 font-medium">
                             {patient.name}
-                          </td>
-                          <td className="py-4 text-slate-600">{patient.age}</td>
-                          <td className="py-4 text-slate-600">
+                          </TableCell>
+
+                          <TableCell className="py-4 text-slate-600">
+                            {patient.age}
+                          </TableCell>
+
+                          <TableCell className="py-4 text-slate-600">
                             {patient.gender}
-                          </td>
-                          <td className="py-4 text-slate-600">
+                          </TableCell>
+
+                          <TableCell className="py-4 text-slate-600">
                             {patient.phone}
-                          </td>
-                          <td className="py-4 text-slate-600">
+                          </TableCell>
+
+                          <TableCell className="py-4 text-slate-600">
                             {patient.bloodGroup}
-                          </td>
-                          <td className="py-4">
+                          </TableCell>
+
+                          <TableCell className="py-4">
                             <Badge
                               variant={
                                 patient.status === "Active"
@@ -283,8 +283,9 @@ export default function Patients() {
                             >
                               {patient.status}
                             </Badge>
-                          </td>
-                          <td className="py-4 text-right">
+                          </TableCell>
+
+                          <TableCell className="py-4 text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
                                 <MoreHorizontal className="h-4 w-4" />
@@ -315,25 +316,25 @@ export default function Patients() {
                                 )}
                               </DropdownMenuContent>
                             </DropdownMenu>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))
                     ) : (
-                      <tr>
-                        <td
+                      <TableRow>
+                        <TableCell
                           colSpan={7}
-                          className="py-10 text-center text-sm text-slate-500"
+                          className="h-24 text-center text-slate-500"
                         >
                           No patients found.
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
               <div className="mt-4 flex items-center justify-between border-t pt-4">
                 <p className="text-sm text-slate-500">
-                  Showing {startIndex + 1}–
+                  Showing {filteredPatients.length === 0 ? 0 : startIndex + 1}–
                   {Math.min(
                     startIndex + patientsPerPage,
                     filteredPatients.length,

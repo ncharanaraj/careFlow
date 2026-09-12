@@ -8,6 +8,7 @@ import {
   fetchDepartments,
   removeDepartment,
   clearDepartmentMutationError,
+  addDepartment,
 } from "@/store/departmentsSlice";
 
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,6 @@ import AddDepartmentDialog, {
   type DepartmentFormData,
 } from "@/components/departments/AddDepartmentDialog";
 
-import { addDepartment } from "@/store/departmentsSlice";
 import type { Department } from "@/types/appointment";
 import DepartmentDetailsDialog from "@/components/departments/DepartmentDetailsDialog";
 import {
@@ -49,6 +49,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PageHeader from "@/components/shared/PageHeader";
 
 export default function Departments() {
   const [addDepartmentOpen, setAddDepartmentOpen] = useState(false);
@@ -172,7 +174,10 @@ export default function Departments() {
 
   const departmentsPerPage = 3;
 
-  const totalPages = Math.ceil(filteredDepartments.length / departmentsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredDepartments.length / departmentsPerPage),
+  );
 
   const startIndex = (currentPage - 1) * departmentsPerPage;
 
@@ -184,174 +189,182 @@ export default function Departments() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Departments</h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Manage hospital departments and services.
-          </p>
-        </div>
-
-        <Button onClick={handleAddDepartment}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Department
-        </Button>
-      </div>
+      <PageHeader
+        title="Departments"
+        description="Manage hospital departments and services."
+        action={
+          <Button onClick={handleAddDepartment}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Department
+          </Button>
+        }
+      />
 
       {/* Main Card */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        {/* Search */}
-        <div className="mb-4">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="text-base">All Departments</CardTitle>
 
-            <Input
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search departments..."
-              className="pl-9"
-            />
+            <div className="relative w-72">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+              <Input
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search departments..."
+                className="pl-9"
+              />
+            </div>
           </div>
-        </div>
+        </CardHeader>
+        <CardContent>
+          {loading && <LoadingState message="Loading departments..." />}
 
-        {loading && <LoadingState message="Loading departments..." />}
+          {!loading && error && (
+            <ErrorState
+              message={error}
+              onRetry={() => dispatch(fetchDepartments())}
+            />
+          )}
 
-        {!loading && error && (
-          <ErrorState
-            message={error}
-            onRetry={() => dispatch(fetchDepartments())}
-          />
-        )}
+          {/* Table */}
+          {!loading && !error && (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created On</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
 
-        {/* Table */}
-        {!loading && !error && (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Department</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created On</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+                <TableBody>
+                  {paginatedDepartments.length > 0 ? (
+                    paginatedDepartments.map((department) => (
+                      <TableRow key={department.id}>
+                        <TableCell className="py-4">
+                          <p className="font-medium text-slate-800">
+                            {department.name}
+                          </p>
+                        </TableCell>
 
-              <TableBody>
-                {paginatedDepartments.length > 0 ? (
-                  paginatedDepartments.map((department) => (
-                    <TableRow
-                      key={department.id}
-                      className="hover:bg-transparent"
-                    >
-                      <TableCell className="py-4">
-                        <p className="font-medium text-slate-800">
-                          {department.name}
-                        </p>
-                      </TableCell>
+                        <TableCell className="max-w-md py-4 text-slate-600">
+                          <p className="line-clamp-2">
+                            {department.description}
+                          </p>
+                        </TableCell>
 
-                      <TableCell className="max-w-md py-4 text-slate-600">
-                        <p className="line-clamp-2">{department.description}</p>
-                      </TableCell>
+                        <TableCell className="py-4">
+                          <Badge
+                            variant={
+                              department.status === "Active"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {department.status}
+                          </Badge>
+                        </TableCell>
 
-                      <TableCell className="py-4">
-                        <Badge
-                          variant={
-                            department.status === "Active"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {department.status}
-                        </Badge>
-                      </TableCell>
+                        <TableCell className="py-4 text-slate-600">
+                          {new Date(department.createdAt).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
+                        </TableCell>
 
-                      <TableCell className="py-4 text-slate-600">
-                        {new Date(department.createdAt).toLocaleDateString(
-                          "en-IN",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          },
-                        )}
-                      </TableCell>
+                        <TableCell className="py-4 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </DropdownMenuTrigger>
 
-                      <TableCell className="py-4 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleViewDepartment(department)}
+                              >
+                                View
+                              </DropdownMenuItem>
 
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleViewDepartment(department)}
-                            >
-                              View
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                              onClick={() => handleEditDepartment(department)}
-                            >
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => handleDeleteClick(department)}
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <DropdownMenuItem
+                                onClick={() => handleEditDepartment(department)}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteClick(department)}
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell
+                        colSpan={5}
+                        className="h-32 text-center text-slate-500"
+                      >
+                        No departments found.
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell
-                      colSpan={5}
-                      className="h-32 text-center text-slate-500"
+                  )}
+                </TableBody>
+              </Table>
+              {filteredDepartments.length > 0 && (
+                <div className="mt-4 flex items-center justify-between border-t pt-4">
+                  <p className="text-sm text-slate-500">
+                    Showing {startIndex + 1}–
+                    {Math.min(
+                      startIndex + departmentsPerPage,
+                      filteredDepartments.length,
+                    )}{" "}
+                    of {filteredDepartments.length}
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((page) => page - 1)}
                     >
-                      No departments found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            {filteredDepartments.length > 0 && (
-              <div className="mt-4 flex items-center justify-between border-t pt-4">
-                <p className="text-sm text-slate-500">
-                  Page {currentPage} of {totalPages}
-                </p>
+                      Previous
+                    </Button>
 
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((page) => page - 1)}
-                  >
-                    Previous
-                  </Button>
+                    <span className="text-sm text-slate-600">
+                      Page {currentPage} of {totalPages}
+                    </span>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((page) => page + 1)}
-                  >
-                    Next
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((page) => page + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
       <AddDepartmentDialog
         open={addDepartmentOpen}
         onOpenChange={setAddDepartmentOpen}

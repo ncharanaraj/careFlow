@@ -59,6 +59,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PageHeader from "@/components/shared/PageHeader";
 
 export default function Staff() {
   const [addOpen, setAddOpen] = useState(false);
@@ -190,7 +192,10 @@ export default function Staff() {
 
   const staffPerPage = 3;
 
-  const totalPages = Math.ceil(filteredStaff.length / staffPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredStaff.length / staffPerPage),
+  );
 
   const startIndex = (currentPage - 1) * staffPerPage;
 
@@ -202,310 +207,273 @@ export default function Staff() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Staff</h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Manage hospital staff and department assignments.
-          </p>
-        </div>
-
-        <Button onClick={handleAddStaff}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Staff
-        </Button>
-      </div>
+      <PageHeader
+        title="Staff"
+        description="Manage hospital staff and department assignments."
+        action={
+          <Button onClick={handleAddStaff}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Staff
+          </Button>
+        }
+      />
 
       {/* Main Card */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        {/* Filters */}
-        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">All Staff</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Filters */}
+          <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 
-            <Input
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search staff..."
-              className="pl-9"
+              <Input
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search staff..."
+                className="pl-9"
+              />
+            </div>
+
+            {/* Department */}
+            <div className="w-full lg:w-56">
+              <Select
+                items={[
+                  {
+                    label: "All Departments",
+                    value: "all",
+                  },
+                  ...departments.map((department) => ({
+                    label: department.name,
+                    value: String(department.id),
+                  })),
+                ]}
+                value={departmentFilter}
+                onValueChange={(value) => {
+                  setDepartmentFilter((value ?? "all") as string);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+
+                  {departments.map((department) => (
+                    <SelectItem
+                      key={department.id}
+                      value={String(department.id)}
+                    >
+                      {department.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Status */}
+            <div className="w-full lg:w-44">
+              <Select
+                items={[
+                  {
+                    label: "All Status",
+                    value: "all",
+                  },
+                  {
+                    label: "Active",
+                    value: "Active",
+                  },
+                  {
+                    label: "Inactive",
+                    value: "Inactive",
+                  },
+                ]}
+                value={statusFilter}
+                onValueChange={(value) => {
+                  setStatusFilter((value ?? "all") as string);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+
+                  <SelectItem value="Active">Active</SelectItem>
+
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {loading && <LoadingState message="Loading staff..." />}
+
+          {!loading && error && (
+            <ErrorState
+              message={error}
+              onRetry={() => dispatch(fetchStaffData())}
             />
-          </div>
+          )}
 
-          {/* Department */}
-          <div className="w-full lg:w-56">
-            <Select
-              items={[
-                {
-                  label: "All Departments",
-                  value: "all",
-                },
-                ...departments.map((department) => ({
-                  label: department.name,
-                  value: String(department.id),
-                })),
-              ]}
-              value={departmentFilter}
-              onValueChange={(value) => {
-                setDepartmentFilter((value ?? "all") as string);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Department" />
-              </SelectTrigger>
+          {/* Table */}
+          {!loading && !error && (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Staff</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Joining Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
+                  <TableBody>
+                    {paginatedStaff.length > 0 ? (
+                      paginatedStaff.map((member) => (
+                        <TableRow key={member.id}>
+                          <TableCell className="py-4">
+                            <div>
+                              <p className="font-medium text-slate-800">
+                                {member.name}
+                              </p>
 
-                {departments.map((department) => (
-                  <SelectItem key={department.id} value={String(department.id)}>
-                    {department.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                              <p className="mt-0.5 text-xs text-slate-500">
+                                {member.email}
+                              </p>
+                            </div>
+                          </TableCell>
 
-          {/* Status */}
-          <div className="w-full lg:w-44">
-            <Select
-              items={[
-                {
-                  label: "All Status",
-                  value: "all",
-                },
-                {
-                  label: "Active",
-                  value: "Active",
-                },
-                {
-                  label: "Inactive",
-                  value: "Inactive",
-                },
-              ]}
-              value={statusFilter}
-              onValueChange={(value) => {
-                setStatusFilter((value ?? "all") as string);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
+                          <TableCell className="py-4 text-slate-600">
+                            {member.role}
+                          </TableCell>
 
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
+                          <TableCell className="py-4 text-slate-600">
+                            {getDepartmentName(member.departmentId)}
+                          </TableCell>
 
-                <SelectItem value="Active">Active</SelectItem>
+                          <TableCell className="py-4 text-slate-600">
+                            {member.phone}
+                          </TableCell>
 
-                <SelectItem value="Inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+                          <TableCell className="py-4 text-slate-600">
+                            {format(
+                              parse(
+                                member.joiningDate,
+                                "yyyy-MM-dd",
+                                new Date(),
+                              ),
+                              "dd MMM yyyy",
+                            )}
+                          </TableCell>
 
-        {loading && <LoadingState message="Loading staff..." />}
+                          <TableCell className="py-4">
+                            <Badge
+                              variant={
+                                member.status === "Active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {member.status}
+                            </Badge>
+                          </TableCell>
 
-        {!loading && error && (
-          <ErrorState
-            message={error}
-            onRetry={() => dispatch(fetchStaffData())}
-          />
-        )}
+                          <TableCell className="py-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </DropdownMenuTrigger>
 
-        {/* Table */}
-        {!loading && !error && (
-          <>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>Staff</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Joining Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleViewStaff(member)}
+                                >
+                                  View
+                                </DropdownMenuItem>
 
-                <TableBody>
-                  {paginatedStaff.length > 0 ? (
-                    paginatedStaff.map((member) => (
-                      <TableRow
-                        key={member.id}
-                        className="hover:bg-transparent"
-                      >
-                        <TableCell className="py-4">
-                          <div>
-                            <p className="font-medium text-slate-800">
-                              {member.name}
-                            </p>
-
-                            <p className="mt-0.5 text-xs text-slate-500">
-                              {member.email}
-                            </p>
-                          </div>
-                        </TableCell>
-
-                        <TableCell className="py-4 text-slate-600">
-                          {member.role}
-                        </TableCell>
-
-                        <TableCell className="py-4 text-slate-600">
-                          {getDepartmentName(member.departmentId)}
-                        </TableCell>
-
-                        <TableCell className="py-4 text-slate-600">
-                          {member.phone}
-                        </TableCell>
-
-                        <TableCell className="py-4 text-slate-600">
-                          {format(
-                            parse(member.joiningDate, "yyyy-MM-dd", new Date()),
-                            "dd MMM yyyy",
-                          )}
-                        </TableCell>
-
-                        <TableCell className="py-4">
-                          <Badge
-                            variant={
-                              member.status === "Active"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {member.status}
-                          </Badge>
-                        </TableCell>
-
-                        <TableCell className="py-4 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleViewStaff(member)}
-                              >
-                                View
-                              </DropdownMenuItem>
-
-                              <DropdownMenuItem
-                                onClick={() => handleEditStaff(member)}
-                              >
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDeleteClick(member)}
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                <DropdownMenuItem
+                                  onClick={() => handleEditStaff(member)}
+                                >
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleDeleteClick(member)}
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow className="hover:bg-transparent">
+                        <TableCell
+                          colSpan={7}
+                          className="h-32 text-center text-slate-500"
+                        >
+                          No staff found.
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell
-                        colSpan={7}
-                        className="h-32 text-center text-slate-500"
-                      >
-                        No staff found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <StaffDetailsDialog
-              open={viewOpen}
-              onOpenChange={setViewOpen}
-              staff={staffToView}
-              departments={departments}
-            />
-            <AddStaffDialog
-              open={editOpen}
-              onOpenChange={setEditOpen}
-              departments={departments}
-              onStaffAdded={handleStaffUpdated}
-              staff={staffToEdit}
-              saving={saving}
-              mutationError={mutationError}
-            />
-            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete staff member?</AlertDialogTitle>
-
-                  <AlertDialogDescription>
-                    This will permanently delete{" "}
-                    <span className="font-medium">{staffToDelete?.name}</span>.
-                    This action cannot be undone.
-                    {mutationError && (
-                      <p className="mt-3 text-sm text-red-600">
-                        {mutationError}
-                      </p>
                     )}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={deleting}>
-                    Cancel
-                  </AlertDialogCancel>
-
-                  <AlertDialogAction
-                    onClick={handleDeleteStaff}
-                    disabled={deleting}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    {deleting ? "Deleting..." : "Delete"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-            {/* Pagination */}
-            {filteredStaff.length > 0 && (
-              <div className="mt-4 flex items-center justify-between border-t pt-4">
-                <p className="text-sm text-slate-500">
-                  Page {currentPage} of {totalPages}
-                </p>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((page) => page - 1)}
-                  >
-                    Previous
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((page) => page + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+                  </TableBody>
+                </Table>
               </div>
-            )}
-          </>
-        )}
-      </div>
+              {/* Pagination */}
+              {filteredStaff.length > 0 && (
+                <div className="mt-4 flex items-center justify-between border-t pt-4">
+                  <p className="text-sm text-slate-500">
+                    Showing {startIndex + 1}–
+                    {Math.min(startIndex + staffPerPage, filteredStaff.length)}{" "}
+                    of {filteredStaff.length}
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((page) => page - 1)}
+                    >
+                      Previous
+                    </Button>
+
+                    <span className="text-sm text-slate-600">
+                      Page {currentPage} of {totalPages}
+                    </span>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((page) => page + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
       <AddStaffDialog
         open={addOpen}
         onOpenChange={setAddOpen}
@@ -514,6 +482,49 @@ export default function Staff() {
         saving={saving}
         mutationError={mutationError}
       />
+      <StaffDetailsDialog
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+        staff={staffToView}
+        departments={departments}
+      />
+      <AddStaffDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        departments={departments}
+        onStaffAdded={handleStaffUpdated}
+        staff={staffToEdit}
+        saving={saving}
+        mutationError={mutationError}
+      />
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete staff member?</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              This will permanently delete{" "}
+              <span className="font-medium">{staffToDelete?.name}</span>. This
+              action cannot be undone.
+              {mutationError && (
+                <p className="mt-3 text-sm text-red-600">{mutationError}</p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={handleDeleteStaff}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
