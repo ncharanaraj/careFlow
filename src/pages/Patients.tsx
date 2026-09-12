@@ -45,6 +45,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import PageHeader from "@/components/shared/PageHeader";
+import { fetchAppointmentData } from "@/store/appointmentsSlice";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
@@ -61,12 +62,36 @@ export default function Patients() {
   const { patients, loading, error, saving, deleting, mutationError } =
     useSelector((state: RootState) => state.patients);
 
+  const { appointments } = useSelector(
+    (state: RootState) => state.appointments,
+  );
+
+  const user = useSelector((state: RootState) => state.auth.user);
+
   useEffect(() => {
     dispatch(fetchPatients());
+    dispatch(fetchAppointmentData());
   }, [dispatch]);
 
+  const doctorPatientIds =
+    user?.role === "Doctor"
+      ? new Set(
+          appointments
+            .filter(
+              (appointment) =>
+                String(appointment.doctorId) === String(user.doctorId),
+            )
+            .map((appointment) => String(appointment.patientId)),
+        )
+      : null;
+
+  const visiblePatients =
+    user?.role === "Doctor"
+      ? patients.filter((patient) => doctorPatientIds?.has(String(patient.id)))
+      : patients;
+
   // Filter patients based on search term
-  const filteredPatients = patients.filter((patient) => {
+  const filteredPatients = visiblePatients.filter((patient) => {
     const searchTerm = search.trim().toLowerCase();
 
     return (
@@ -182,8 +207,6 @@ export default function Patients() {
       console.error("Failed to delete patient:", error);
     }
   };
-
-  const user = useSelector((state: RootState) => state.auth.user);
 
   const canAddPatient = hasPermission(user?.role, "patient:add");
 

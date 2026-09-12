@@ -149,16 +149,6 @@
   ],
   "appointments": [
     {
-      "patientId": "3",
-      "doctorId": "doc-1",
-      "departmentId": "dep-1",
-      "appointmentDate": "2026-09-12",
-      "timeSlot": "10:00 AM",
-      "status": "Cancelled",
-      "createdAt": "2026-09-10T10:00:00.000Z",
-      "id": "apt-1"
-    },
-    {
       "patientId": "5",
       "doctorId": "doc-3",
       "departmentId": "dep-3",
@@ -170,8 +160,8 @@
     },
     {
       "patientId": "5",
-      "doctorId": "doc-2",
-      "departmentId": "dep-2",
+      "doctorId": "doc-1",
+      "departmentId": "dep-1",
       "appointmentDate": "2026-09-25",
       "timeSlot": "10:00 AM",
       "status": "Cancelled",
@@ -179,9 +169,9 @@
       "id": "MmnIehFoQYo"
     },
     {
-      "patientId": null,
-      "doctorId": "doc-3",
-      "departmentId": "dep-3",
+      "patientId": "3",
+      "doctorId": "doc-1",
+      "departmentId": "dep-1",
       "appointmentDate": "2026-09-11",
       "timeSlot": "03:00 PM",
       "status": "Completed",
@@ -200,8 +190,8 @@
     },
     {
       "patientId": "xDd3TcrECHs",
-      "doctorId": "doc-2",
-      "departmentId": "dep-2",
+      "doctorId": "doc-1",
+      "departmentId": "dep-1",
       "appointmentDate": "2026-09-16",
       "timeSlot": "03:00 PM",
       "status": "Completed",
@@ -210,13 +200,23 @@
     },
     {
       "patientId": "6",
-      "doctorId": "doc-2",
-      "departmentId": "dep-2",
+      "doctorId": "doc-1",
+      "departmentId": "dep-1",
       "appointmentDate": "2026-09-12",
       "timeSlot": "11:00 AM",
-      "status": "Scheduled",
+      "status": "Completed",
       "createdAt": "2026-09-12T02:52:25.808Z",
       "id": "3uFjiZYa4YM"
+    },
+    {
+      "patientId": "6",
+      "doctorId": "doc-1",
+      "departmentId": "dep-1",
+      "appointmentDate": "2026-09-13",
+      "timeSlot": "11:00 AM",
+      "status": "Completed",
+      "createdAt": "2026-09-12T14:23:59.779Z",
+      "id": "vP3kI9Qic5A"
     }
   ],
   "staff": [
@@ -289,7 +289,8 @@
       "name": "Dr. Arjun Rao",
       "email": "doctor@careflow.com",
       "password": "doctor123",
-      "role": "Doctor"
+      "role": "Doctor",
+      "doctorId": "doc-1"
     },
     {
       "id": "user-3",
@@ -297,6 +298,92 @@
       "email": "staff@careflow.com",
       "password": "staff123",
       "role": "Staff"
+    }
+  ],
+  "prescriptions": [
+    {
+      "patientId": "3",
+      "appointmentId": "G7EFXAmJfss",
+      "doctorId": "doc-1",
+      "diagnosis": "Stamoch Pain",
+      "medicines": [
+        {
+          "id": "bfe13b34-87fc-4cc2-a5b7-19a2d4d59546",
+          "medicineName": "Paracetamol",
+          "dosage": "500mg",
+          "frequency": "Twice daily",
+          "duration": "5",
+          "instructions": "Take after food"
+        }
+      ],
+      "notes": "",
+      "createdAt": "2026-09-12T13:18:25.186Z",
+      "id": "vzw4LviZlak"
+    },
+    {
+      "patientId": "xDd3TcrECHs",
+      "appointmentId": "uy1PNaCBCww",
+      "doctorId": "doc-1",
+      "diagnosis": "Headache",
+      "medicines": [
+        {
+          "id": "a54dab57-81f0-4e5c-b552-a73069dee1ba",
+          "medicineName": "Paracetamol",
+          "dosage": "500mg",
+          "frequency": "Twice daily",
+          "duration": "10 days",
+          "instructions": "Take after food"
+        },
+        {
+          "id": "76933bc4-62bb-48ea-a91f-9a1f66a994a0",
+          "medicineName": "Amoxicillin",
+          "dosage": "500mg",
+          "frequency": "Twice daily",
+          "duration": "10 days",
+          "instructions": "Take after food"
+        }
+      ],
+      "notes": "",
+      "createdAt": "2026-09-12T13:18:55.851Z",
+      "id": "Gp5x99EZ3OY"
+    },
+    {
+      "patientId": "6",
+      "appointmentId": "3uFjiZYa4YM",
+      "doctorId": "doc-1",
+      "diagnosis": "High Fever",
+      "medicines": [
+        {
+          "id": "c957599c-31b4-40d9-9e48-2670c908a89d",
+          "medicineName": "Omeprazole",
+          "dosage": "50",
+          "frequency": "Twice daily",
+          "duration": "5",
+          "instructions": "Take before food"
+        }
+      ],
+      "notes": "",
+      "createdAt": "2026-09-12T14:11:15.383Z",
+      "id": "HyRGcVIq0M8"
+    },
+    {
+      "patientId": "6",
+      "appointmentId": "vP3kI9Qic5A",
+      "doctorId": "doc-1",
+      "diagnosis": "vomit",
+      "medicines": [
+        {
+          "id": "4a9f2f79-d5e5-4cd7-b7d9-d546b059924b",
+          "medicineName": "Amoxicillin",
+          "dosage": "50",
+          "frequency": "Twice daily",
+          "duration": "5",
+          "instructions": "Take after food"
+        }
+      ],
+      "notes": "",
+      "createdAt": "2026-09-12T14:28:22.946Z",
+      "id": "kFV4UZGNiAI"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

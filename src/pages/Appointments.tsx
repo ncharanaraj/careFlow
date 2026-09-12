@@ -91,6 +91,8 @@ export default function Appointments() {
     mutationError,
   } = useSelector((state: RootState) => state.appointments);
 
+  const user = useSelector((state: RootState) => state.auth.user);
+
   useEffect(() => {
     dispatch(fetchAppointmentData());
   }, [dispatch]);
@@ -126,7 +128,15 @@ export default function Appointments() {
     setAddAppointmentOpen(true);
   };
 
-  const filteredAppointments = appointments.filter((appointment) => {
+  const visibleAppointments =
+    user?.role === "Doctor"
+      ? appointments.filter(
+          (appointment) =>
+            String(appointment.doctorId) === String(user.doctorId),
+        )
+      : appointments;
+
+  const filteredAppointments = visibleAppointments.filter((appointment) => {
     const searchTerm = search.trim().toLowerCase();
 
     const patientName = getPatientName(appointment.patientId).toLowerCase();
@@ -264,8 +274,6 @@ export default function Appointments() {
     startIndex,
     startIndex + appointmentsPerPage,
   );
-
-  const user = useSelector((state: RootState) => state.auth.user);
 
   const canAddAppointment = hasPermission(user?.role, "appointment:add");
 

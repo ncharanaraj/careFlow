@@ -34,6 +34,7 @@ export const loginUser = async (
     name: user.name,
     email: user.email,
     role: user.role,
+    doctorId: user.doctorId,
   };
 
   return authenticatedUser;

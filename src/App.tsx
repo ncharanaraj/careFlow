@@ -5,6 +5,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleRoute from "@/components/auth/RoleRoute";
 import LoadingState from "@/components/shared/LoadingState";
+import Prescriptions from "./pages/Prescriptions";
 
 const Login = lazy(() => import("@/pages/Login"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -55,15 +56,7 @@ export default function App() {
 
               {/* Admin + Doctor */}
               <Route element={<RoleRoute allowedRoles={["Admin", "Doctor"]} />}>
-                <Route
-                  path="/prescriptions"
-                  element={
-                    <PlaceholderPage
-                      title="Prescriptions"
-                      description="Manage patient prescriptions."
-                    />
-                  }
-                />
+                <Route path="/prescriptions" element={<Prescriptions />} />
               </Route>
 
               {/* All authenticated users */}

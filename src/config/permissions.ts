@@ -8,7 +8,10 @@ type Permission =
   | "appointment:edit"
   | "appointment:complete"
   | "appointment:cancel"
-  | "appointment:delete";
+  | "appointment:delete"
+  | "prescription:add"
+  | "prescription:edit"
+  | "prescription:delete";
 
 const permissions: Record<UserRole, Permission[]> = {
   Admin: [
@@ -21,9 +24,18 @@ const permissions: Record<UserRole, Permission[]> = {
     "appointment:complete",
     "appointment:cancel",
     "appointment:delete",
+
+    "prescription:add",
+    "prescription:edit",
+    "prescription:delete",
   ],
 
-  Doctor: ["appointment:complete"],
+  Doctor: [
+    "appointment:complete",
+
+    "prescription:add",
+    "prescription:edit",
+  ],
 
   Staff: [
     "patient:add",

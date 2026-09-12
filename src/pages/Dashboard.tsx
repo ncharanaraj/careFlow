@@ -1,6 +1,12 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Users, CalendarDays, Stethoscope, UserCog } from "lucide-react";
+import {
+  Users,
+  CalendarDays,
+  Stethoscope,
+  UserCog,
+  FileText,
+} from "lucide-react";
 
 import type { AppDispatch, RootState } from "@/store/store";
 
@@ -8,6 +14,7 @@ import { fetchPatients } from "@/store/patientsSlice";
 import { fetchAppointmentData } from "@/store/appointmentsSlice";
 import { fetchDoctorData } from "@/store/doctorsSlice";
 import { fetchStaffData } from "@/store/staffSlice";
+import { fetchPrescriptions } from "@/store/prescriptionsSlice";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
@@ -29,11 +36,18 @@ export default function Dashboard() {
 
   const staff = useSelector((state: RootState) => state.staff.staff);
 
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  const { prescriptions } = useSelector(
+    (state: RootState) => state.prescriptions,
+  );
+
   useEffect(() => {
     dispatch(fetchPatients());
     dispatch(fetchAppointmentData());
     dispatch(fetchDoctorData());
     dispatch(fetchStaffData());
+    dispatch(fetchPrescriptions());
   }, [dispatch]);
 
   const activeDoctors = doctors.filter(
@@ -44,32 +58,82 @@ export default function Dashboard() {
     (member) => member.status === "Active",
   ).length;
 
+  const visibleAppointments =
+    user?.role === "Doctor"
+      ? appointments.filter(
+          (appointment) =>
+            String(appointment.doctorId) === String(user.doctorId),
+        )
+      : appointments;
+
+  const doctorPatientIds =
+    user?.role === "Doctor"
+      ? new Set(
+          visibleAppointments.map((appointment) =>
+            String(appointment.patientId),
+          ),
+        )
+      : null;
+
+  const visiblePatients =
+    user?.role === "Doctor"
+      ? patients.filter((patient) => doctorPatientIds?.has(String(patient.id)))
+      : patients;
+
+  const visiblePrescriptions =
+    user?.role === "Doctor"
+      ? prescriptions.filter(
+          (prescription) =>
+            String(prescription.doctorId) === String(user.doctorId),
+        )
+      : prescriptions;
+
   const stats = [
     {
       title: "Total Patients",
-      value: patients.length,
+      value: visiblePatients.length,
       icon: Users,
     },
     {
       title: "Appointments",
-      value: appointments.length,
+      value: visibleAppointments.length,
       icon: CalendarDays,
+    },
+    {
+      title: "Prescriptions",
+      value: visiblePrescriptions.length,
+      icon: FileText,
+      doctorOnly: true,
     },
     {
       title: "Active Doctors",
       value: activeDoctors,
       icon: Stethoscope,
+      adminOnly: true,
     },
     {
       title: "Active Staff",
       value: activeStaff,
       icon: UserCog,
+      adminOnly: true,
     },
   ];
 
+  const visibleStats = stats.filter((stat) => {
+    if (stat.adminOnly) {
+      return user?.role === "Admin";
+    }
+
+    if (stat.doctorOnly) {
+      return user?.role === "Doctor";
+    }
+
+    return true;
+  });
+
   const today = format(new Date(), "yyyy-MM-dd");
 
-  const todaysAppointments = appointments.filter(
+  const todaysAppointments = visibleAppointments.filter(
     (appointment) => appointment.appointmentDate === today,
   );
 
@@ -87,22 +151,22 @@ export default function Dashboard() {
     );
   };
 
-  const recentPatients = [...patients]
+  const recentPatients = [...visiblePatients]
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
     .slice(0, 5);
 
-  const scheduledCount = appointments.filter(
+  const scheduledCount = visibleAppointments.filter(
     (appointment) => appointment.status === "Scheduled",
   ).length;
 
-  const completedCount = appointments.filter(
+  const completedCount = visibleAppointments.filter(
     (appointment) => appointment.status === "Completed",
   ).length;
 
-  const cancelledCount = appointments.filter(
+  const cancelledCount = visibleAppointments.filter(
     (appointment) => appointment.status === "Cancelled",
   ).length;
 
@@ -161,7 +225,7 @@ export default function Dashboard() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => {
+        {visibleStats.map((stat) => {
           const Icon = stat.icon;
 
           return (
