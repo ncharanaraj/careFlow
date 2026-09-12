@@ -249,14 +249,16 @@ export default function Appointments() {
     setCancelOpen(true);
   };
 
-  const appointmentsPerPage = 3;
+  const appointmentsPerPage = 5;
 
   const totalPages = Math.max(
     1,
     Math.ceil(filteredAppointments.length / appointmentsPerPage),
   );
 
-  const startIndex = (currentPage - 1) * appointmentsPerPage;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * appointmentsPerPage;
 
   const paginatedAppointments = filteredAppointments.slice(
     startIndex,
@@ -522,7 +524,7 @@ export default function Appointments() {
                 </Table>
               </div>
               {filteredAppointments.length > 0 && (
-                <div className="mt-4 flex items-center justify-between border-t pt-4">
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-slate-500">
                     Showing {startIndex + 1}–
                     {Math.min(
@@ -532,25 +534,25 @@ export default function Appointments() {
                     of {filteredAppointments.length}
                   </p>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage((page) => page - 1)}
+                      disabled={safeCurrentPage === 1}
+                      onClick={() => setCurrentPage(safeCurrentPage - 1)}
                     >
                       Previous
                     </Button>
 
                     <span className="text-sm text-slate-600">
-                      Page {currentPage} of {totalPages}
+                      Page {safeCurrentPage} of {totalPages}
                     </span>
 
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage((page) => page + 1)}
+                      disabled={safeCurrentPage === totalPages}
+                      onClick={() => setCurrentPage(safeCurrentPage + 1)}
                     >
                       Next
                     </Button>

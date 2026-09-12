@@ -190,14 +190,16 @@ export default function Staff() {
     }
   };
 
-  const staffPerPage = 3;
+  const staffPerPage = 5;
 
   const totalPages = Math.max(
     1,
     Math.ceil(filteredStaff.length / staffPerPage),
   );
 
-  const startIndex = (currentPage - 1) * staffPerPage;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * staffPerPage;
 
   const paginatedStaff = filteredStaff.slice(
     startIndex,
@@ -438,32 +440,32 @@ export default function Staff() {
               </div>
               {/* Pagination */}
               {filteredStaff.length > 0 && (
-                <div className="mt-4 flex items-center justify-between border-t pt-4">
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-slate-500">
                     Showing {startIndex + 1}–
                     {Math.min(startIndex + staffPerPage, filteredStaff.length)}{" "}
                     of {filteredStaff.length}
                   </p>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage((page) => page - 1)}
+                      disabled={safeCurrentPage === 1}
+                      onClick={() => setCurrentPage(safeCurrentPage - 1)}
                     >
                       Previous
                     </Button>
 
                     <span className="text-sm text-slate-600">
-                      Page {currentPage} of {totalPages}
+                      Page {safeCurrentPage} of {totalPages}
                     </span>
 
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage((page) => page + 1)}
+                      disabled={safeCurrentPage === totalPages}
+                      onClick={() => setCurrentPage(safeCurrentPage + 1)}
                     >
                       Next
                     </Button>

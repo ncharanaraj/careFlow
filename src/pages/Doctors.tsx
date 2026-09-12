@@ -177,13 +177,16 @@ export default function Doctors() {
     // setEditOpen(false);
   };
 
-  const doctorsPerPage = 2;
+  const doctorsPerPage = 5;
 
   const totalPages = Math.max(
     1,
     Math.ceil(filteredDoctors.length / doctorsPerPage),
   );
-  const startIndex = (currentPage - 1) * doctorsPerPage;
+
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * doctorsPerPage;
 
   const paginatedDoctors = filteredDoctors.slice(
     startIndex,
@@ -277,114 +280,116 @@ export default function Doctors() {
 
           {/* Table */}
           {!loading && !error && (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Doctor</TableHead>
-                    <TableHead>Specialization</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Experience</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Doctor</TableHead>
+                      <TableHead>Specialization</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Experience</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-                <TableBody>
-                  {paginatedDoctors.length > 0 ? (
-                    paginatedDoctors.map((doctor) => (
-                      <TableRow key={doctor.id}>
-                        {/* Doctor */}
-                        <TableCell className="py-4">
-                          <div>
-                            <p className="font-medium text-slate-900">
-                              {doctor.name}
-                            </p>
+                  <TableBody>
+                    {paginatedDoctors.length > 0 ? (
+                      paginatedDoctors.map((doctor) => (
+                        <TableRow key={doctor.id}>
+                          {/* Doctor */}
+                          <TableCell className="py-4">
+                            <div>
+                              <p className="font-medium text-slate-900">
+                                {doctor.name}
+                              </p>
 
-                            <p className="text-xs text-slate-500">
-                              {doctor.email}
-                            </p>
-                          </div>
-                        </TableCell>
+                              <p className="text-xs text-slate-500">
+                                {doctor.email}
+                              </p>
+                            </div>
+                          </TableCell>
 
-                        {/* Specialization */}
-                        <TableCell className="py-4 text-slate-600">
-                          {doctor.specialization}
-                        </TableCell>
+                          {/* Specialization */}
+                          <TableCell className="py-4 text-slate-600">
+                            {doctor.specialization}
+                          </TableCell>
 
-                        {/* Department */}
-                        <TableCell className="py-4 text-slate-600">
-                          {getDepartmentName(doctor.departmentId)}
-                        </TableCell>
+                          {/* Department */}
+                          <TableCell className="py-4 text-slate-600">
+                            {getDepartmentName(doctor.departmentId)}
+                          </TableCell>
 
-                        {/* Experience */}
-                        <TableCell className="py-4 text-slate-600">
-                          {doctor.experience}{" "}
-                          {doctor.experience === 1 ? "year" : "years"}
-                        </TableCell>
+                          {/* Experience */}
+                          <TableCell className="py-4 text-slate-600">
+                            {doctor.experience}{" "}
+                            {doctor.experience === 1 ? "year" : "years"}
+                          </TableCell>
 
-                        {/* Phone */}
-                        <TableCell className="py-4 text-slate-600">
-                          {doctor.phone}
-                        </TableCell>
+                          {/* Phone */}
+                          <TableCell className="py-4 text-slate-600">
+                            {doctor.phone}
+                          </TableCell>
 
-                        {/* Status */}
-                        <TableCell className="py-4">
-                          <Badge
-                            variant={
-                              doctor.status === "Active"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {doctor.status}
-                          </Badge>
-                        </TableCell>
+                          {/* Status */}
+                          <TableCell className="py-4">
+                            <Badge
+                              variant={
+                                doctor.status === "Active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {doctor.status}
+                            </Badge>
+                          </TableCell>
 
-                        {/* Actions */}
-                        <TableCell className="py-4 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </DropdownMenuTrigger>
+                          {/* Actions */}
+                          <TableCell className="py-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-slate-100">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </DropdownMenuTrigger>
 
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleViewDoctor(doctor)}
-                              >
-                                View
-                              </DropdownMenuItem>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleViewDoctor(doctor)}
+                                >
+                                  View
+                                </DropdownMenuItem>
 
-                              <DropdownMenuItem
-                                onClick={() => handleEditDoctor(doctor)}
-                              >
-                                Edit
-                              </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleEditDoctor(doctor)}
+                                >
+                                  Edit
+                                </DropdownMenuItem>
 
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDeleteClick(doctor)}
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleDeleteClick(doctor)}
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={7}
+                          className="h-32 text-center text-slate-500"
+                        >
+                          No doctors found.
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        className="h-32 text-center text-slate-500"
-                      >
-                        No doctors found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
               {filteredDoctors.length > 0 && (
                 <div className="mt-4 flex items-center justify-between border-t pt-4">
                   <p className="text-sm text-slate-500">
@@ -400,28 +405,28 @@ export default function Doctors() {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage((page) => page - 1)}
+                      disabled={safeCurrentPage === 1}
+                      onClick={() => setCurrentPage(safeCurrentPage - 1)}
                     >
                       Previous
                     </Button>
 
                     <span className="text-sm text-slate-600">
-                      Page {currentPage} of {totalPages}
+                      Page {safeCurrentPage} of {totalPages}
                     </span>
 
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage((page) => page + 1)}
+                      disabled={safeCurrentPage === totalPages}
+                      onClick={() => setCurrentPage(safeCurrentPage + 1)}
                     >
                       Next
                     </Button>
                   </div>
                 </div>
               )}
-            </div>
+            </>
           )}
         </CardContent>
       </Card>

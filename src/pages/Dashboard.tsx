@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
+import PageHeader from "@/components/shared/PageHeader";
 
 export default function Dashboard() {
   const dispatch = useDispatch<AppDispatch>();
@@ -154,13 +155,10 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
-
-        <p className="mt-1 text-sm text-slate-500">
-          Overview of hospital operations.
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Overview of hospital operations."
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => {
@@ -214,7 +212,7 @@ export default function Dashboard() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <span className="text-sm text-slate-600">
                       {appointment.timeSlot}
                     </span>
@@ -262,7 +260,7 @@ export default function Dashboard() {
                 {recentPatients.map((patient) => (
                   <div
                     key={patient.id}
-                    className="flex items-center justify-between py-3"
+                    className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div>
                       <p className="text-sm font-medium text-slate-900">
@@ -274,7 +272,7 @@ export default function Dashboard() {
                       </p>
                     </div>
 
-                    <div className="text-right">
+                    <div className="sm:text-right">
                       <Badge
                         variant={
                           patient.status === "Active" ? "default" : "secondary"

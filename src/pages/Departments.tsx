@@ -172,14 +172,16 @@ export default function Departments() {
     setDeleteOpen(false);
   };
 
-  const departmentsPerPage = 3;
+  const departmentsPerPage = 5;
 
   const totalPages = Math.max(
     1,
     Math.ceil(filteredDepartments.length / departmentsPerPage),
   );
 
-  const startIndex = (currentPage - 1) * departmentsPerPage;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * departmentsPerPage;
 
   const paginatedDepartments = filteredDepartments.slice(
     startIndex,
@@ -203,10 +205,10 @@ export default function Departments() {
       {/* Main Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-base">All Departments</CardTitle>
 
-            <div className="relative w-72">
+            <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 
               <Input
@@ -233,100 +235,106 @@ export default function Departments() {
 
           {/* Table */}
           {!loading && !error && (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created On</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created On</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-                <TableBody>
-                  {paginatedDepartments.length > 0 ? (
-                    paginatedDepartments.map((department) => (
-                      <TableRow key={department.id}>
-                        <TableCell className="py-4">
-                          <p className="font-medium text-slate-800">
-                            {department.name}
-                          </p>
-                        </TableCell>
+                  <TableBody>
+                    {paginatedDepartments.length > 0 ? (
+                      paginatedDepartments.map((department) => (
+                        <TableRow key={department.id}>
+                          <TableCell className="py-4">
+                            <p className="font-medium text-slate-800">
+                              {department.name}
+                            </p>
+                          </TableCell>
 
-                        <TableCell className="max-w-md py-4 text-slate-600">
-                          <p className="line-clamp-2">
-                            {department.description}
-                          </p>
-                        </TableCell>
+                          <TableCell className="max-w-md py-4 text-slate-600">
+                            <p className="line-clamp-2">
+                              {department.description}
+                            </p>
+                          </TableCell>
 
-                        <TableCell className="py-4">
-                          <Badge
-                            variant={
-                              department.status === "Active"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {department.status}
-                          </Badge>
-                        </TableCell>
+                          <TableCell className="py-4">
+                            <Badge
+                              variant={
+                                department.status === "Active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {department.status}
+                            </Badge>
+                          </TableCell>
 
-                        <TableCell className="py-4 text-slate-600">
-                          {new Date(department.createdAt).toLocaleDateString(
-                            "en-IN",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            },
-                          )}
-                        </TableCell>
+                          <TableCell className="py-4 text-slate-600">
+                            {new Date(department.createdAt).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
+                          </TableCell>
 
-                        <TableCell className="py-4 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </DropdownMenuTrigger>
+                          <TableCell className="py-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </DropdownMenuTrigger>
 
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleViewDepartment(department)}
-                              >
-                                View
-                              </DropdownMenuItem>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleViewDepartment(department)
+                                  }
+                                >
+                                  View
+                                </DropdownMenuItem>
 
-                              <DropdownMenuItem
-                                onClick={() => handleEditDepartment(department)}
-                              >
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => handleDeleteClick(department)}
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleEditDepartment(department)
+                                  }
+                                >
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleDeleteClick(department)}
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow className="hover:bg-transparent">
+                        <TableCell
+                          colSpan={5}
+                          className="h-32 text-center text-slate-500"
+                        >
+                          No departments found.
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell
-                        colSpan={5}
-                        className="h-32 text-center text-slate-500"
-                      >
-                        No departments found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
               {filteredDepartments.length > 0 && (
-                <div className="mt-4 flex items-center justify-between border-t pt-4">
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-slate-500">
                     Showing {startIndex + 1}–
                     {Math.min(
@@ -336,32 +344,32 @@ export default function Departments() {
                     of {filteredDepartments.length}
                   </p>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage((page) => page - 1)}
+                      disabled={safeCurrentPage === 1}
+                      onClick={() => setCurrentPage(safeCurrentPage - 1)}
                     >
                       Previous
                     </Button>
 
                     <span className="text-sm text-slate-600">
-                      Page {currentPage} of {totalPages}
+                      Page {safeCurrentPage} of {totalPages}
                     </span>
 
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage((page) => page + 1)}
+                      disabled={safeCurrentPage === totalPages}
+                      onClick={() => setCurrentPage(safeCurrentPage + 1)}
                     >
                       Next
                     </Button>
                   </div>
                 </div>
               )}
-            </div>
+            </>
           )}
         </CardContent>
       </Card>

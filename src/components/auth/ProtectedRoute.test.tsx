@@ -1,23 +1,13 @@
-import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
+import type { AuthUser } from "@/types/auth";
 
-import RoleRoute from "@/components/auth/RoleRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import authReducer from "@/store/authSlice";
-import type { UserRole } from "@/types/auth";
 
-function renderWithRole(role: UserRole | null) {
-  const user = role
-    ? {
-        id: "user-1",
-        name: "Test User",
-        email: "test@careflow.com",
-        role,
-      }
-    : null;
-
+function renderProtectedRoute(user: AuthUser | null) {
   const store = configureStore({
     reducer: {
       auth: authReducer,
@@ -33,43 +23,34 @@ function renderWithRole(role: UserRole | null) {
 
   render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={["/doctors"]}>
+      <MemoryRouter initialEntries={["/protected"]}>
         <Routes>
-          <Route element={<RoleRoute allowedRoles={["Admin"]} />}>
-            <Route path="/doctors" element={<div>Doctors Page</div>} />
-          </Route>
-
-          <Route path="/dashboard" element={<div>Dashboard Page</div>} />
-
           <Route path="/login" element={<div>Login Page</div>} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/protected" element={<div>Protected Page</div>} />
+          </Route>
         </Routes>
       </MemoryRouter>
     </Provider>,
   );
 }
 
-describe("RoleRoute", () => {
-  it("allows admin to access admin routes", () => {
-    renderWithRole("Admin");
-
-    expect(screen.getByText("Doctors Page")).toBeInTheDocument();
-  });
-
-  it("redirects doctor from admin routes", () => {
-    renderWithRole("Doctor");
-
-    expect(screen.getByText("Dashboard Page")).toBeInTheDocument();
-  });
-
-  it("redirects staff from admin routes", () => {
-    renderWithRole("Staff");
-
-    expect(screen.getByText("Dashboard Page")).toBeInTheDocument();
-  });
-
+describe("ProtectedRoute", () => {
   it("redirects unauthenticated users to login", () => {
-    renderWithRole(null);
+    renderProtectedRoute(null);
 
     expect(screen.getByText("Login Page")).toBeInTheDocument();
+  });
+
+  it("allows authenticated users to access protected routes", () => {
+    renderProtectedRoute({
+      id: "1",
+      name: "Test User",
+      email: "test@careflow.com",
+      role: "Admin",
+    });
+
+    expect(screen.getByText("Protected Page")).toBeInTheDocument();
   });
 });

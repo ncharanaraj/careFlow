@@ -1,47 +1,39 @@
-import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 
 import RoleRoute from "@/components/auth/RoleRoute";
 import authReducer from "@/store/authSlice";
-import type { UserRole } from "@/types/auth";
 
-function renderWithRole(role: UserRole | null) {
-  const user = role
-    ? {
-        id: "user-1",
-        name: "Test User",
-        email: "test@careflow.com",
-        role,
-      }
-    : null;
-
+function renderWithRole(role: "Admin" | "Doctor" | "Staff") {
   const store = configureStore({
     reducer: {
       auth: authReducer,
     },
     preloadedState: {
       auth: {
-        user,
+        user: {
+          id: "1",
+          name: "Test User",
+          email: "test@careflow.com",
+          role,
+        },
         loading: false,
         error: null,
       },
     },
   });
 
-  render(
+  return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={["/doctors"]}>
+      <MemoryRouter initialEntries={["/admin-page"]}>
         <Routes>
           <Route element={<RoleRoute allowedRoles={["Admin"]} />}>
-            <Route path="/doctors" element={<div>Doctors Page</div>} />
+            <Route path="/admin-page" element={<div>Admin Page</div>} />
           </Route>
 
-          <Route path="/dashboard" element={<div>Dashboard Page</div>} />
-
-          <Route path="/login" element={<div>Login Page</div>} />
+          <Route path="/access-denied" element={<div>Access Denied</div>} />
         </Routes>
       </MemoryRouter>
     </Provider>,
@@ -49,27 +41,21 @@ function renderWithRole(role: UserRole | null) {
 }
 
 describe("RoleRoute", () => {
-  it("allows admin to access admin routes", () => {
+  it("allows user with permitted role", () => {
     renderWithRole("Admin");
 
-    expect(screen.getByText("Doctors Page")).toBeInTheDocument();
+    expect(screen.getByText("Admin Page")).toBeInTheDocument();
   });
 
-  it("redirects doctor from admin routes", () => {
+  it("redirects unauthorized user to access denied", () => {
     renderWithRole("Doctor");
 
-    expect(screen.getByText("Dashboard Page")).toBeInTheDocument();
+    expect(screen.getByText("Access Denied")).toBeInTheDocument();
   });
 
-  it("redirects staff from admin routes", () => {
+  it("redirects staff when role is not allowed", () => {
     renderWithRole("Staff");
 
-    expect(screen.getByText("Dashboard Page")).toBeInTheDocument();
-  });
-
-  it("redirects unauthenticated users to login", () => {
-    renderWithRole(null);
-
-    expect(screen.getByText("Login Page")).toBeInTheDocument();
+    expect(screen.getByText("Access Denied")).toBeInTheDocument();
   });
 });

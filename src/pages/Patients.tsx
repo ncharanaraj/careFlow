@@ -79,13 +79,16 @@ export default function Patients() {
   });
 
   // Pagination logic
-  const patientsPerPage = 3;
+  const patientsPerPage = 5;
+
   const totalPages = Math.max(
     1,
     Math.ceil(filteredPatients.length / patientsPerPage),
   );
 
-  const startIndex = (currentPage - 1) * patientsPerPage;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * patientsPerPage;
 
   const paginatedPatients = filteredPatients.slice(
     startIndex,
@@ -207,10 +210,10 @@ export default function Patients() {
       {/* Patient Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-base">All Patients</CardTitle>
 
-            <div className="relative w-72">
+            <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 
               <Input
@@ -346,21 +349,21 @@ export default function Patients() {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((page) => page - 1)}
+                    disabled={safeCurrentPage === 1}
+                    onClick={() => setCurrentPage(safeCurrentPage - 1)}
                   >
                     Previous
                   </Button>
 
                   <span className="text-sm text-slate-600">
-                    Page {currentPage} of {totalPages}
+                    Page {safeCurrentPage} of {totalPages}
                   </span>
 
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((page) => page + 1)}
+                    disabled={safeCurrentPage === totalPages}
+                    onClick={() => setCurrentPage(safeCurrentPage + 1)}
                   >
                     Next
                   </Button>
