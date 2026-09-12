@@ -65,6 +65,12 @@ export default function Prescriptions() {
 
   const doctors = useSelector((state: RootState) => state.doctors.doctors);
 
+  const appointments = useSelector(
+    (state: RootState) => state.appointments.appointments,
+  );
+
+  const user = useSelector((state: RootState) => state.auth.user);
+
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -81,7 +87,6 @@ export default function Prescriptions() {
     useState<Prescription | null>(null);
 
   const [editOpen, setEditOpen] = useState(false);
-  const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
     dispatch(fetchPrescriptions());
@@ -155,10 +160,6 @@ export default function Prescriptions() {
       console.error("Failed to delete prescription:", error);
     }
   };
-
-  const appointments = useSelector(
-    (state: RootState) => state.appointments.appointments,
-  );
 
   const handleAddPrescription = () => {
     dispatch(clearPrescriptionMutationError());

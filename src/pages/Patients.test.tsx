@@ -7,7 +7,9 @@ import { configureStore } from "@reduxjs/toolkit";
 
 import Patients from "@/pages/Patients";
 import patientsReducer from "@/store/patientsSlice";
+import appointmentsReducer from "@/store/appointmentsSlice";
 import * as patientService from "@/services/patientService";
+import * as appointmentService from "@/services/appointmentService";
 
 vi.mock("@/services/patientService", () => ({
   getPatients: vi.fn(),
@@ -16,10 +18,19 @@ vi.mock("@/services/patientService", () => ({
   deletePatient: vi.fn(),
 }));
 
+vi.mock("@/services/appointmentService", () => ({
+  getAppointments: vi.fn(),
+  createAppointment: vi.fn(),
+  updateAppointment: vi.fn(),
+  deleteAppointment: vi.fn(),
+}));
+
 function renderPatients() {
   const store = configureStore({
     reducer: {
       patients: patientsReducer,
+      appointments: appointmentsReducer,
+
       auth: (
         state = {
           user: {
@@ -51,6 +62,8 @@ describe("Patients", () => {
     const user = userEvent.setup();
 
     vi.mocked(patientService.getPatients).mockResolvedValue([]);
+
+    vi.mocked(appointmentService.getAppointments).mockResolvedValue([]);
 
     vi.mocked(patientService.createPatient).mockResolvedValue({
       id: "patient-test-1",
