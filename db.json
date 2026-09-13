@@ -216,16 +216,6 @@
       "id": "3uFjiZYa4YM"
     },
     {
-      "patientId": "6",
-      "doctorId": "doc-1",
-      "departmentId": "dep-1",
-      "appointmentDate": "2026-09-13",
-      "timeSlot": "11:00 AM",
-      "status": "Completed",
-      "createdAt": "2026-09-12T14:23:59.779Z",
-      "id": "vP3kI9Qic5A"
-    },
-    {
       "patientId": "kVluR9gV9NE",
       "doctorId": "BhVHsdpTLiQ",
       "departmentId": "O1BuuoVWc7I",
@@ -244,6 +234,16 @@
       "status": "Scheduled",
       "createdAt": "2026-09-13T03:22:14.200Z",
       "id": "dWrFa5euhF0"
+    },
+    {
+      "patientId": "5",
+      "doctorId": "oXfDk_PLjN4",
+      "departmentId": "L1aSwxQ4yF8",
+      "appointmentDate": "2026-09-14",
+      "timeSlot": "02:00 PM",
+      "status": "Scheduled",
+      "createdAt": "2026-09-13T18:55:39.897Z",
+      "id": "5auoA-WQGlQ"
     }
   ],
   "staff": [
@@ -392,25 +392,6 @@
       "notes": "",
       "createdAt": "2026-09-12T14:11:15.383Z",
       "id": "HyRGcVIq0M8"
-    },
-    {
-      "patientId": "6",
-      "appointmentId": "vP3kI9Qic5A",
-      "doctorId": "doc-1",
-      "diagnosis": "vomit",
-      "medicines": [
-        {
-          "id": "4a9f2f79-d5e5-4cd7-b7d9-d546b059924b",
-          "medicineName": "Amoxicillin",
-          "dosage": "50",
-          "frequency": "Twice daily",
-          "duration": "5",
-          "instructions": "Take after food"
-        }
-      ],
-      "notes": "",
-      "createdAt": "2026-09-12T14:28:22.946Z",
-      "id": "kFV4UZGNiAI"
     }
   ],
   "labReports": [
