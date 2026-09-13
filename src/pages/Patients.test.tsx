@@ -8,6 +8,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import Patients from "@/pages/Patients";
 import patientsReducer from "@/store/patientsSlice";
 import appointmentsReducer from "@/store/appointmentsSlice";
+import prescriptionsReducer from "@/store/prescriptionsSlice";
+import labReportsReducer from "@/store/labReportsSlice";
 import * as patientService from "@/services/patientService";
 import * as appointmentService from "@/services/appointmentService";
 
@@ -30,6 +32,8 @@ function renderPatients() {
     reducer: {
       patients: patientsReducer,
       appointments: appointmentsReducer,
+      prescriptions: prescriptionsReducer,
+      labReports: labReportsReducer,
 
       auth: (
         state = {
