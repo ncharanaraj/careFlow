@@ -1,6 +1,5 @@
 import type { Department } from "@/types/appointment";
-
-const API_URL = "http://localhost:3001";
+import { API_URL } from "@/config/api";
 
 export const getDepartments = async (): Promise<Department[]> => {
   const response = await fetch(`${API_URL}/departments`);

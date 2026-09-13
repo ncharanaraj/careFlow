@@ -1,9 +1,8 @@
 import type { LabReport } from "@/types/labReport";
-
-const API_URL = "http://localhost:3001/labReports";
+import { API_URL } from "@/config/api";
 
 export const getLabReports = async (): Promise<LabReport[]> => {
-  const response = await fetch(API_URL);
+  const response = await fetch(`${API_URL}/labReports`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch lab reports");
@@ -15,7 +14,7 @@ export const getLabReports = async (): Promise<LabReport[]> => {
 export const createLabReport = async (
   labReport: Omit<LabReport, "id">,
 ): Promise<LabReport> => {
-  const response = await fetch(API_URL, {
+  const response = await fetch(`${API_URL}/labReports`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -34,7 +33,7 @@ export const updateLabReport = async (
   id: string,
   labReport: Omit<LabReport, "id">,
 ): Promise<LabReport> => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await fetch(`${API_URL}/labReports/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -53,7 +52,7 @@ export const updateLabReport = async (
 };
 
 export const deleteLabReport = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await fetch(`${API_URL}/labReports/${id}`, {
     method: "DELETE",
   });
 

@@ -1,6 +1,5 @@
 import type { AuthUser, LoginCredentials } from "@/types/auth";
-
-const API_URL = "http://localhost:3001";
+import { API_URL } from "@/config/api";
 
 interface ApiUser extends AuthUser {
   password: string;

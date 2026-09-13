@@ -1,6 +1,5 @@
 import type { Staff } from "@/types/appointment";
-
-const API_URL = "http://localhost:3001";
+import { API_URL } from "@/config/api";
 
 export const getStaff = async (): Promise<Staff[]> => {
   const response = await fetch(`${API_URL}/staff`);

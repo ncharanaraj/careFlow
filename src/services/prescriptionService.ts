@@ -1,9 +1,8 @@
 import type { Prescription } from "@/types/prescription";
-
-const API_URL = "http://localhost:3001/prescriptions";
+import { API_URL } from "@/config/api";
 
 export const getPrescriptions = async (): Promise<Prescription[]> => {
-  const response = await fetch(API_URL);
+  const response = await fetch(`${API_URL}/prescriptions`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch prescriptions");
@@ -15,7 +14,7 @@ export const getPrescriptions = async (): Promise<Prescription[]> => {
 export const createPrescription = async (
   prescription: Omit<Prescription, "id">,
 ): Promise<Prescription> => {
-  const response = await fetch(API_URL, {
+  const response = await fetch(`${API_URL}/prescriptions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -34,7 +33,7 @@ export const updatePrescription = async (
   id: string,
   prescription: Omit<Prescription, "id">,
 ): Promise<Prescription> => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await fetch(`${API_URL}/prescriptions/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -50,7 +49,7 @@ export const updatePrescription = async (
 };
 
 export const deletePrescription = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await fetch(`${API_URL}/prescriptions/${id}`, {
     method: "DELETE",
   });
 

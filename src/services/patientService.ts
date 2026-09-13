@@ -1,6 +1,5 @@
 import type { Patient } from "@/types/patients";
-
-const API_URL = "http://localhost:3001";
+import { API_URL } from "@/config/api";
 
 export const getPatients = async (): Promise<Patient[]> => {
   const response = await fetch(`${API_URL}/patients`);

@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "api": "json-server db.json --port 3001",
+    "api:prod": "json-server db.json --port $PORT",
     "test": "vitest"
   },
   "dependencies": {
