@@ -90,7 +90,7 @@ export default function AddDepartmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {department ? "Edit Department" : "Add Department"}
@@ -136,17 +136,22 @@ export default function AddDepartmentDialog({
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
               disabled={saving}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
 
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="w-full sm:w-auto"
+            >
               {saving
                 ? "Saving..."
                 : department

@@ -148,8 +148,15 @@ export default function AddAppointmentDialog({
     value: String(patient.id),
   }));
 
-  const doctorItems = filteredDoctors.map((doctor) => ({
-    label: doctor.name,
+  const selectableDoctors = filteredDoctors.filter(
+    (doctor) =>
+      doctor.status === "Active" ||
+      (appointment && String(doctor.id) === String(appointment.doctorId)),
+  );
+
+  const doctorItems = selectableDoctors.map((doctor) => ({
+    label:
+      doctor.status === "Inactive" ? `${doctor.name} (Inactive)` : doctor.name,
     value: String(doctor.id),
   }));
 
@@ -179,7 +186,7 @@ export default function AddAppointmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {appointment ? "Edit Appointment" : "Add Appointment"}
@@ -294,7 +301,7 @@ export default function AddAppointmentDialog({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="appointmentDate">Appointment Date</Label>
 
@@ -397,17 +404,22 @@ export default function AddAppointmentDialog({
             </div>
           )}
 
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
               disabled={saving}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
 
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="w-full sm:w-auto"
+            >
               {saving
                 ? "Saving..."
                 : appointment

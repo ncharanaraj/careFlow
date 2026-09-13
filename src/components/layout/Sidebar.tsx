@@ -147,15 +147,14 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           </div>
 
           {/* Management */}
-          <div>
-            <p className="mb-2 px-3 text-xs font-medium uppercase tracking-wider text-slate-400">
-              Management
-            </p>
+          {user?.role === "Admin" && (
+            <div>
+              <p className="mb-2 px-3 text-xs font-medium uppercase tracking-wider text-slate-400">
+                Management
+              </p>
 
-            <div className="space-y-1">
-              {managementMenu
-                .filter((item) => user && item.roles.includes(user.role))
-                .map((item) => {
+              <div className="space-y-1">
+                {managementMenu.map((item) => {
                   const Icon = item.icon;
 
                   return (
@@ -176,8 +175,9 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     </NavLink>
                   );
                 })}
+              </div>
             </div>
-          </div>
+          )}
         </nav>
 
         {/* Settings */}

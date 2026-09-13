@@ -41,18 +41,15 @@ export default function PrescriptionDetailsDialog({
   if (!prescription) return null;
 
   const patient = patients.find(
-    (item) =>
-      String(item.id) === String(prescription.patientId),
+    (item) => String(item.id) === String(prescription.patientId),
   );
 
   const doctor = doctors.find(
-    (item) =>
-      String(item.id) === String(prescription.doctorId),
+    (item) => String(item.id) === String(prescription.doctorId),
   );
 
   const appointment = appointments.find(
-    (item) =>
-      String(item.id) === String(prescription.appointmentId),
+    (item) => String(item.id) === String(prescription.appointmentId),
   );
 
   return (
@@ -66,18 +63,12 @@ export default function PrescriptionDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Patient / Doctor */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <DetailItem
-              label="Patient"
-              value={patient?.name ?? "Unknown"}
-            />
+            <DetailItem label="Patient" value={patient?.name ?? "Unknown"} />
 
-            <DetailItem
-              label="Doctor"
-              value={doctor?.name ?? "Unknown"}
-            />
+            <DetailItem label="Doctor" value={doctor?.name ?? "Unknown"} />
 
             <DetailItem
               label="Appointment Date"
@@ -91,10 +82,7 @@ export default function PrescriptionDetailsDialog({
 
             <DetailItem
               label="Created On"
-              value={format(
-                new Date(prescription.createdAt),
-                "dd MMM yyyy",
-              )}
+              value={format(new Date(prescription.createdAt), "dd MMM yyyy")}
             />
           </div>
 
@@ -104,13 +92,11 @@ export default function PrescriptionDetailsDialog({
               Diagnosis
             </p>
 
-            <p className="text-sm text-slate-800">
-              {prescription.diagnosis}
-            </p>
+            <p className="text-sm text-slate-800">{prescription.diagnosis}</p>
           </div>
 
           {/* Medicines */}
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">
                 Medicines
@@ -121,8 +107,8 @@ export default function PrescriptionDetailsDialog({
               </p>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border">
-              <Table>
+            <div className="w-full min-w-0 overflow-x-auto rounded-lg border">
+              <Table className="min-w-175">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Medicine</TableHead>
@@ -140,21 +126,13 @@ export default function PrescriptionDetailsDialog({
                         {medicine.medicineName}
                       </TableCell>
 
-                      <TableCell>
-                        {medicine.dosage}
-                      </TableCell>
+                      <TableCell>{medicine.dosage}</TableCell>
 
-                      <TableCell>
-                        {medicine.frequency}
-                      </TableCell>
+                      <TableCell>{medicine.frequency}</TableCell>
 
-                      <TableCell>
-                        {medicine.duration}
-                      </TableCell>
+                      <TableCell>{medicine.duration}</TableCell>
 
-                      <TableCell>
-                        {medicine.instructions || "—"}
-                      </TableCell>
+                      <TableCell>{medicine.instructions || "—"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -183,19 +161,14 @@ interface DetailItemProps {
   value: string;
 }
 
-function DetailItem({
-  label,
-  value,
-}: DetailItemProps) {
+function DetailItem({ label, value }: DetailItemProps) {
   return (
     <div className="space-y-1">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {label}
       </p>
 
-      <p className="text-sm font-medium text-slate-800">
-        {value}
-      </p>
+      <p className="text-sm font-medium text-slate-800">{value}</p>
     </div>
   );
 }

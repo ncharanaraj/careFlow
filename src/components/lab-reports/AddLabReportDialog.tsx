@@ -218,10 +218,37 @@ export default function AddLabReportDialog({
   }, [open, labReport, dispatch, reset]);
 
   const onSubmit = async (data: LabReportFormData) => {
+    const selectedAppointment = appointments.find(
+      (appointment) => String(appointment.id) === String(data.appointmentId),
+    );
+
+    if (!labReport) {
+      if (!selectedAppointment) {
+        return;
+      }
+
+      if (
+        selectedAppointment.status !== "Completed" ||
+        String(selectedAppointment.patientId) !== String(data.patientId) ||
+        String(selectedAppointment.doctorId) !== String(data.doctorId)
+      ) {
+        return;
+      }
+
+      if (
+        user?.role === "Doctor" &&
+        String(selectedAppointment.doctorId) !== String(user.doctorId)
+      ) {
+        return;
+      }
+    }
+
     const payload: Omit<LabReport, "id"> = {
-      patientId: data.patientId,
-      appointmentId: data.appointmentId,
-      doctorId: data.doctorId,
+      patientId: labReport ? labReport.patientId : data.patientId,
+
+      appointmentId: labReport ? labReport.appointmentId : data.appointmentId,
+
+      doctorId: labReport ? labReport.doctorId : data.doctorId,
 
       status: labReport?.status ?? "Ordered",
 
@@ -291,6 +318,7 @@ export default function AddLabReportDialog({
                   value: String(patient.id),
                 }))}
                 value={patientId}
+                disabled={Boolean(labReport)}
                 onValueChange={(value) => {
                   setValue("patientId", (value ?? "") as string, {
                     shouldValidate: true,
@@ -325,7 +353,7 @@ export default function AddLabReportDialog({
               <label className="text-sm font-medium">Appointment</label>
 
               <Select
-                disabled={!patientId}
+                disabled={Boolean(labReport) || !patientId}
                 items={filteredAppointments.map((appointment) => ({
                   value: String(appointment.id),
                   label: `${appointment.appointmentDate} - ${appointment.timeSlot}`,
@@ -376,7 +404,7 @@ export default function AddLabReportDialog({
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="font-medium">Lab Tests</h3>
 
@@ -389,6 +417,7 @@ export default function AddLabReportDialog({
                 type="button"
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => append(createEmptyTest())}
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -495,17 +524,22 @@ export default function AddLabReportDialog({
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               disabled={saving}
               onClick={() => onOpenChange(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
 
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="w-full sm:w-auto"
+            >
               {saving
                 ? labReport
                   ? "Updating..."

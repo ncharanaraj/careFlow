@@ -59,6 +59,9 @@ import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/shared/PageHeader";
+import { fetchAppointmentData } from "@/store/appointmentsSlice";
+import { fetchPrescriptions } from "@/store/prescriptionsSlice";
+import { fetchLabReports } from "@/store/labReportsSlice";
 
 export default function Doctors() {
   const [addDoctorOpen, setAddDoctorOpen] = useState(false);
@@ -82,11 +85,29 @@ export default function Doctors() {
     mutationError,
   } = useSelector((state: RootState) => state.doctors);
 
+  const appointments = useSelector(
+    (state: RootState) => state.appointments.appointments,
+  );
+
+  const prescriptions = useSelector(
+    (state: RootState) => state.prescriptions.prescriptions,
+  );
+
+  const labReports = useSelector(
+    (state: RootState) => state.labReports.labReports,
+  );
+
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [deleteBlockedMessage, setDeleteBlockedMessage] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     dispatch(fetchDoctorData());
+    dispatch(fetchAppointmentData());
+    dispatch(fetchPrescriptions());
+    dispatch(fetchLabReports());
   }, [dispatch]);
 
   const getDepartmentName = (id: string) =>
@@ -141,8 +162,82 @@ export default function Doctors() {
 
   const handleDeleteClick = (doctor: Doctor) => {
     dispatch(clearDoctorMutationError());
+
+    const linkedAppointments = appointments.filter(
+      (appointment) => String(appointment.doctorId) === String(doctor.id),
+    );
+
+    const linkedPrescriptions = prescriptions.filter(
+      (prescription) => String(prescription.doctorId) === String(doctor.id),
+    );
+
+    const linkedLabReports = labReports.filter(
+      (report) => String(report.doctorId) === String(doctor.id),
+    );
+
+    const dependencies: string[] = [];
+
+    if (linkedAppointments.length > 0) {
+      dependencies.push(
+        `${linkedAppointments.length} appointment${
+          linkedAppointments.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (linkedPrescriptions.length > 0) {
+      dependencies.push(
+        `${linkedPrescriptions.length} prescription${
+          linkedPrescriptions.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (linkedLabReports.length > 0) {
+      dependencies.push(
+        `${linkedLabReports.length} lab report${
+          linkedLabReports.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (dependencies.length > 0) {
+      setDoctorToDelete(doctor);
+
+      setDeleteBlockedMessage(
+        `${doctor.name} cannot be deleted because this doctor is linked to ${dependencies.join(
+          ", ",
+        )}. You can mark this doctor as Inactive instead.`,
+      );
+
+      return;
+    }
+
     setDoctorToDelete(doctor);
     setDeleteOpen(true);
+  };
+
+  const handleMarkDoctorInactive = async () => {
+    if (!doctorToDelete) return;
+
+    await dispatch(
+      editDoctor({
+        id: doctorToDelete.id,
+        doctor: {
+          name: doctorToDelete.name,
+          departmentId: doctorToDelete.departmentId,
+          specialization: doctorToDelete.specialization,
+          phone: doctorToDelete.phone,
+          email: doctorToDelete.email,
+          experience: doctorToDelete.experience,
+          status: "Inactive",
+          createdAt: doctorToDelete.createdAt,
+        },
+      }),
+    ).unwrap();
+
+    setDeleteBlockedMessage(null);
+    setDoctorToDelete(null);
   };
 
   const handleDeleteDoctor = async () => {
@@ -167,7 +262,7 @@ export default function Doctors() {
           phone: data.phone,
           email: data.email,
           experience: Number(data.experience),
-          status: doctorToEdit.status,
+          status: data.status,
           createdAt: doctorToEdit.createdAt,
         },
       }),
@@ -192,6 +287,13 @@ export default function Doctors() {
     startIndex,
     startIndex + doctorsPerPage,
   );
+
+  const handleDoctorsRetry = () => {
+    dispatch(fetchDoctorData());
+    dispatch(fetchAppointmentData());
+    dispatch(fetchPrescriptions());
+    dispatch(fetchLabReports());
+  };
 
   return (
     <div className="space-y-6">
@@ -272,10 +374,7 @@ export default function Doctors() {
           {loading && <LoadingState message="Loading doctors..." />}
 
           {!loading && error && (
-            <ErrorState
-              message={error}
-              onRetry={() => dispatch(fetchDoctorData())}
-            />
+            <ErrorState message={error} onRetry={handleDoctorsRetry} />
           )}
 
           {/* Table */}
@@ -383,7 +482,9 @@ export default function Doctors() {
                           colSpan={7}
                           className="h-32 text-center text-slate-500"
                         >
-                          No doctors found.
+                          {search || departmentFilter !== "all"
+                            ? "No doctors match your search or filters."
+                            : "No doctors available yet."}
                         </TableCell>
                       </TableRow>
                     )}
@@ -391,7 +492,7 @@ export default function Doctors() {
                 </Table>
               </div>
               {filteredDoctors.length > 0 && (
-                <div className="mt-4 flex items-center justify-between border-t pt-4">
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row items-center justify-center sm:justify-between">
                   <p className="text-sm text-slate-500">
                     Showing {startIndex + 1}–
                     {Math.min(
@@ -401,7 +502,7 @@ export default function Doctors() {
                     of {filteredDoctors.length}
                   </p>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -477,6 +578,41 @@ export default function Doctors() {
               disabled={deleting}
             >
               {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={Boolean(deleteBlockedMessage)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteBlockedMessage(null);
+            setDoctorToDelete(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Doctor Cannot Be Deleted</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              {deleteBlockedMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDeleteBlockedMessage(null);
+                setDoctorToDelete(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction onClick={handleMarkDoctorInactive}>
+              Mark Inactive
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

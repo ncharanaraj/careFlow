@@ -208,17 +208,22 @@ export default function CompleteLabReportDialog({
             ))}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               disabled={saving}
               onClick={() => onOpenChange(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
 
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="w-full sm:w-auto"
+            >
               {saving ? "Completing..." : "Complete Report"}
             </Button>
           </DialogFooter>

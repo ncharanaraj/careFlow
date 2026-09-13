@@ -9,6 +9,8 @@ import {
   removeAppointment,
   clearAppointmentMutationError,
 } from "@/store/appointmentsSlice";
+import { fetchPrescriptions } from "@/store/prescriptionsSlice";
+import { fetchLabReports } from "@/store/labReportsSlice";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +71,9 @@ export default function Appointments() {
   const [appointmentToDelete, setAppointmentToDelete] =
     useState<Appointment | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteBlockedMessage, setDeleteBlockedMessage] = useState<
+    string | null
+  >(null);
   const [appointmentToView, setAppointmentToView] =
     useState<Appointment | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
@@ -91,10 +96,20 @@ export default function Appointments() {
     mutationError,
   } = useSelector((state: RootState) => state.appointments);
 
+  const prescriptions = useSelector(
+    (state: RootState) => state.prescriptions.prescriptions,
+  );
+
+  const labReports = useSelector(
+    (state: RootState) => state.labReports.labReports,
+  );
+
   const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
     dispatch(fetchAppointmentData());
+    dispatch(fetchPrescriptions());
+    dispatch(fetchLabReports());
   }, [dispatch]);
 
   const getPatientName = (id: number | string) =>
@@ -110,6 +125,10 @@ export default function Appointments() {
       ?.name ?? "Unknown";
 
   const handleAppointmentAdded = async (data: AppointmentFormData) => {
+    if (!canAddAppointment) {
+      return;
+    }
+
     await dispatch(
       addAppointment({
         patientId: data.patientId,
@@ -149,6 +168,7 @@ export default function Appointments() {
       statusFilter === "all" || appointment.status === statusFilter;
 
     const matchesDepartment =
+      user?.role === "Doctor" ||
       departmentFilter === "all" ||
       String(appointment.departmentId) === departmentFilter;
 
@@ -156,13 +176,24 @@ export default function Appointments() {
   });
 
   const handleEditAppointment = (appointment: Appointment) => {
+    if (!canEditAppointment || !canAccessAppointment(appointment)) {
+      return;
+    }
+
     dispatch(clearAppointmentMutationError());
+
     setAppointmentToEdit(appointment);
     setEditOpen(true);
   };
 
   const handleAppointmentUpdated = async (data: AppointmentFormData) => {
-    if (!appointmentToEdit) return;
+    if (
+      !appointmentToEdit ||
+      !canEditAppointment ||
+      !canAccessAppointment(appointmentToEdit)
+    ) {
+      return;
+    }
 
     await dispatch(
       editAppointment({
@@ -178,13 +209,18 @@ export default function Appointments() {
         },
       }),
     ).unwrap();
-
-    // setAppointmentToEdit(null);
-    // setEditOpen(false);
   };
 
   const confirmCancelAppointment = async () => {
-    if (!appointmentToCancel) return;
+    if (
+      !appointmentToCancel ||
+      !canCancelAppointment ||
+      appointmentToCancel.status !== "Scheduled"
+    ) {
+      setAppointmentToCancel(null);
+      setCancelOpen(false);
+      return;
+    }
 
     try {
       await dispatch(
@@ -205,13 +241,59 @@ export default function Appointments() {
   };
 
   const handleDeleteClick = (appointment: Appointment) => {
+    if (!canDeleteAppointment) {
+      return;
+    }
+
     dispatch(clearAppointmentMutationError());
+
+    const linkedPrescriptions = prescriptions.filter(
+      (prescription) =>
+        String(prescription.appointmentId) === String(appointment.id),
+    );
+
+    const linkedLabReports = labReports.filter(
+      (report) => String(report.appointmentId) === String(appointment.id),
+    );
+
+    const dependencies: string[] = [];
+
+    if (linkedPrescriptions.length > 0) {
+      dependencies.push(
+        `${linkedPrescriptions.length} prescription${
+          linkedPrescriptions.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (linkedLabReports.length > 0) {
+      dependencies.push(
+        `${linkedLabReports.length} lab report${
+          linkedLabReports.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (dependencies.length > 0) {
+      setAppointmentToDelete(appointment);
+
+      setDeleteBlockedMessage(
+        `This appointment cannot be deleted because it is linked to ${dependencies.join(
+          ", ",
+        )}.`,
+      );
+
+      return;
+    }
+
     setAppointmentToDelete(appointment);
     setDeleteOpen(true);
   };
 
   const handleDeleteAppointment = async () => {
-    if (!appointmentToDelete) return;
+    if (!appointmentToDelete || !canDeleteAppointment) {
+      return;
+    }
 
     await dispatch(removeAppointment(appointmentToDelete.id)).unwrap();
 
@@ -225,6 +307,14 @@ export default function Appointments() {
   };
 
   const handleCompleteClick = (appointment: Appointment) => {
+    if (
+      !canCompleteAppointment ||
+      !canAccessAppointment(appointment) ||
+      appointment.status !== "Scheduled"
+    ) {
+      return;
+    }
+
     dispatch(clearAppointmentMutationError());
 
     setAppointmentToComplete(appointment);
@@ -233,6 +323,16 @@ export default function Appointments() {
 
   const confirmCompleteAppointment = async () => {
     if (!appointmentToComplete) return;
+
+    if (
+      !canCompleteAppointment ||
+      !canAccessAppointment(appointmentToComplete) ||
+      appointmentToComplete.status !== "Scheduled"
+    ) {
+      setAppointmentToComplete(null);
+      setCompleteOpen(false);
+      return;
+    }
 
     try {
       await dispatch(
@@ -253,6 +353,10 @@ export default function Appointments() {
   };
 
   const handleCancelClick = (appointment: Appointment) => {
+    if (!canCancelAppointment || appointment.status !== "Scheduled") {
+      return;
+    }
+
     dispatch(clearAppointmentMutationError());
 
     setAppointmentToCancel(appointment);
@@ -275,6 +379,14 @@ export default function Appointments() {
     startIndex + appointmentsPerPage,
   );
 
+  const canAccessAppointment = (appointment: Appointment) => {
+    if (user?.role !== "Doctor") {
+      return true;
+    }
+
+    return String(appointment.doctorId) === String(user.doctorId);
+  };
+
   const canAddAppointment = hasPermission(user?.role, "appointment:add");
 
   const canEditAppointment = hasPermission(user?.role, "appointment:edit");
@@ -287,6 +399,12 @@ export default function Appointments() {
   const canCancelAppointment = hasPermission(user?.role, "appointment:cancel");
 
   const canDeleteAppointment = hasPermission(user?.role, "appointment:delete");
+
+  const handleAppointmentsRetry = () => {
+    dispatch(fetchAppointmentData());
+    dispatch(fetchPrescriptions());
+    dispatch(fetchLabReports());
+  };
 
   return (
     <div className="space-y-6">
@@ -312,10 +430,7 @@ export default function Appointments() {
           {loading ? (
             <LoadingState message="Loading appointments..." />
           ) : error ? (
-            <ErrorState
-              message={error}
-              onRetry={() => dispatch(fetchAppointmentData())}
-            />
+            <ErrorState message={error} onRetry={handleAppointmentsRetry} />
           ) : (
             <>
               <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -371,39 +486,41 @@ export default function Appointments() {
                   </Select>
                 </div>
 
-                <div className="w-full lg:w-44">
-                  <Select
-                    items={[
-                      { label: "All Departments", value: "all" },
-                      ...departments.map((department) => ({
-                        label: department.name,
-                        value: String(department.id),
-                      })),
-                    ]}
-                    value={departmentFilter}
-                    onValueChange={(value) => {
-                      setDepartmentFilter((value ?? "all") as string);
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Department" />
-                    </SelectTrigger>
+                {user?.role !== "Doctor" && (
+                  <div className="w-full lg:w-44">
+                    <Select
+                      items={[
+                        { label: "All Departments", value: "all" },
+                        ...departments.map((department) => ({
+                          label: department.name,
+                          value: String(department.id),
+                        })),
+                      ]}
+                      value={departmentFilter}
+                      onValueChange={(value) => {
+                        setDepartmentFilter((value ?? "all") as string);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Department" />
+                      </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="all">All Departments</SelectItem>
+                      <SelectContent>
+                        <SelectItem value="all">All Departments</SelectItem>
 
-                      {departments.map((department) => (
-                        <SelectItem
-                          key={department.id}
-                          value={String(department.id)}
-                        >
-                          {department.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                        {departments.map((department) => (
+                          <SelectItem
+                            key={department.id}
+                            value={String(department.id)}
+                          >
+                            {department.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               <div className="overflow-x-auto">
                 <Table>
@@ -470,16 +587,6 @@ export default function Appointments() {
                                   View
                                 </DropdownMenuItem>
 
-                                {canEditAppointment && (
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleEditAppointment(appointment)
-                                    }
-                                  >
-                                    Edit
-                                  </DropdownMenuItem>
-                                )}
-
                                 {canCompleteAppointment &&
                                   appointment.status === "Scheduled" && (
                                     <DropdownMenuItem
@@ -490,6 +597,16 @@ export default function Appointments() {
                                       Mark as Completed
                                     </DropdownMenuItem>
                                   )}
+
+                                {canEditAppointment && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleEditAppointment(appointment)
+                                    }
+                                  >
+                                    Edit
+                                  </DropdownMenuItem>
+                                )}
 
                                 {canCancelAppointment &&
                                   appointment.status === "Scheduled" && (
@@ -524,7 +641,11 @@ export default function Appointments() {
                           colSpan={7}
                           className="h-24 text-center text-slate-500"
                         >
-                          No appointments found.
+                          {search ||
+                          statusFilter !== "all" ||
+                          departmentFilter !== "all"
+                            ? "No appointments match your search or filters."
+                            : "No appointments available yet."}
                         </TableCell>
                       </TableRow>
                     )}
@@ -532,7 +653,7 @@ export default function Appointments() {
                 </Table>
               </div>
               {filteredAppointments.length > 0 && (
-                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row items-center justify-center sm:justify-between">
                   <p className="text-sm text-slate-500">
                     Showing {startIndex + 1}–
                     {Math.min(
@@ -685,6 +806,36 @@ export default function Appointments() {
               disabled={saving}
             >
               {saving ? "Completing..." : "Mark as Completed"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog
+        open={Boolean(deleteBlockedMessage)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteBlockedMessage(null);
+            setAppointmentToDelete(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Appointment Cannot Be Deleted</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              {deleteBlockedMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setDeleteBlockedMessage(null);
+                setAppointmentToDelete(null);
+              }}
+            >
+              OK
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

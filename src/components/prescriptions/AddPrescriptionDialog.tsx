@@ -183,11 +183,6 @@ export default function AddPrescriptionDialog({
     }
   }, [appointmentId, appointments, setValue]);
 
-  //   useEffect(() => {
-  //     setValue("appointmentId", "");
-  //     setValue("doctorId", "");
-  //   }, [patientId, setValue]);
-
   useEffect(() => {
     if (!open) return;
 
@@ -260,6 +255,7 @@ export default function AddPrescriptionDialog({
                   value: String(patient.id),
                 }))}
                 value={patientId}
+                disabled={Boolean(prescription)}
                 onValueChange={(value) => {
                   const nextPatientId = (value ?? "") as string;
 
@@ -306,7 +302,7 @@ export default function AddPrescriptionDialog({
                   value: String(appointment.id),
                 }))}
                 value={appointmentId}
-                disabled={!patientId}
+                disabled={Boolean(prescription) || !patientId}
                 onValueChange={(value) => {
                   setValue("appointmentId", (value ?? "") as string, {
                     shouldValidate: true,
@@ -373,7 +369,7 @@ export default function AddPrescriptionDialog({
 
           {/* Medicines */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-sm font-semibold">Medicines</h3>
 
@@ -386,6 +382,7 @@ export default function AddPrescriptionDialog({
                 type="button"
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() =>
                   append({
                     medicineName: "",
@@ -513,17 +510,22 @@ export default function AddPrescriptionDialog({
             <p className="text-sm text-red-600">{mutationError}</p>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               disabled={saving}
               onClick={() => handleOpenChange(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
 
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="w-full sm:w-auto"
+            >
               {saving
                 ? "Saving..."
                 : prescription

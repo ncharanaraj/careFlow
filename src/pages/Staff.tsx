@@ -159,9 +159,7 @@ export default function Staff() {
           phone: data.phone,
           email: data.email,
           joiningDate: data.joiningDate,
-
-          // Preserve existing values
-          status: staffToEdit.status,
+          status: data.status,
           createdAt: staffToEdit.createdAt,
         },
       }),
@@ -431,7 +429,11 @@ export default function Staff() {
                           colSpan={7}
                           className="h-32 text-center text-slate-500"
                         >
-                          No staff found.
+                          {search ||
+                          departmentFilter !== "all" ||
+                          statusFilter !== "all"
+                            ? "No staff match your search or filters."
+                            : "No staff members available yet."}
                         </TableCell>
                       </TableRow>
                     )}
@@ -440,7 +442,7 @@ export default function Staff() {
               </div>
               {/* Pagination */}
               {filteredStaff.length > 0 && (
-                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row items-center justify-center sm:justify-between">
                   <p className="text-sm text-slate-500">
                     Showing {startIndex + 1}–
                     {Math.min(startIndex + staffPerPage, filteredStaff.length)}{" "}

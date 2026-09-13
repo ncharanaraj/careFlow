@@ -168,18 +168,22 @@ export default function LabReportDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div id="lab-report-print" className="space-y-6">
+        <div id="lab-report-print" className="min-w-0 space-y-6">
           <div className="grid grid-cols-1 gap-4 rounded-lg border p-4 sm:grid-cols-2">
             <div>
               <p className="text-xs text-slate-500">Patient</p>
 
-              <p className="mt-1 font-medium">{patient?.name ?? "Unknown"}</p>
+              <p className="mt-1 wrap-break-word font-medium">
+                {patient?.name ?? "Unknown"}
+              </p>
             </div>
 
             <div>
               <p className="text-xs text-slate-500">Doctor</p>
 
-              <p className="mt-1 font-medium">{doctor?.name ?? "Unknown"}</p>
+              <p className="mt-1 wrap-break-word font-medium">
+                {doctor?.name ?? "Unknown"}
+              </p>
             </div>
 
             <div>
@@ -229,7 +233,7 @@ export default function LabReportDetailsDialog({
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <div>
               <h3 className="font-semibold">Test Results</h3>
 
@@ -238,18 +242,14 @@ export default function LabReportDetailsDialog({
               </p>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border">
-              <Table>
+            <div className="w-full min-w-0 overflow-x-auto rounded-lg border">
+              <Table className="min-w-175">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Test</TableHead>
-
                     <TableHead>Category</TableHead>
-
                     <TableHead>Result</TableHead>
-
                     <TableHead>Normal Range</TableHead>
-
                     <TableHead>Unit</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -288,12 +288,21 @@ export default function LabReportDetailsDialog({
 
         {labReport.status === "Completed" && (
           <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" onClick={handlePrint}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrint}
+              className="w-full sm:w-auto"
+            >
               <Printer className="mr-2 h-4 w-4" />
               Print Report
             </Button>
 
-            <Button type="button" onClick={handleDownload}>
+            <Button
+              type="button"
+              onClick={handleDownload}
+              className="w-full sm:w-auto"
+            >
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>

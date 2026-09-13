@@ -41,6 +41,8 @@ const doctorSchema = z.object({
     .string()
     .min(1, "Experience is required")
     .refine((value) => Number(value) >= 0, "Experience cannot be negative"),
+
+  status: z.enum(["Active", "Inactive"]),
 });
 
 export type DoctorFormData = z.infer<typeof doctorSchema>;
@@ -80,12 +82,18 @@ export default function AddDoctorDialog({
       phone: "",
       email: "",
       experience: "",
+      status: "Active",
     },
   });
 
   const departmentId = useWatch({
     control,
     name: "departmentId",
+  });
+
+  const status = useWatch({
+    control,
+    name: "status",
   });
 
   useEffect(() => {
@@ -97,6 +105,7 @@ export default function AddDoctorDialog({
         phone: doctor.phone,
         email: doctor.email,
         experience: String(doctor.experience),
+        status: doctor.status,
       });
     }
 
@@ -108,6 +117,7 @@ export default function AddDoctorDialog({
         phone: "",
         email: "",
         experience: "",
+        status: "Active",
       });
     }
   }, [open, doctor, reset]);
@@ -137,7 +147,7 @@ export default function AddDoctorDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{doctor ? "Edit Doctor" : "Add Doctor"}</DialogTitle>
 
@@ -254,6 +264,52 @@ export default function AddDoctorDialog({
                 <p className="text-xs text-red-500">{errors.email.message}</p>
               )}
             </div>
+
+            {doctor && (
+              <div className="space-y-2">
+                <Label>Status</Label>
+
+                <Select
+                  items={[
+                    {
+                      label: "Active",
+                      value: "Active",
+                    },
+                    {
+                      label: "Inactive",
+                      value: "Inactive",
+                    },
+                  ]}
+                  value={status || "Active"}
+                  onValueChange={(value) =>
+                    setValue(
+                      "status",
+                      (value ?? "Active") as "Active" | "Inactive",
+                      {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      },
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {errors.status && (
+                  <p className="text-xs text-red-500">
+                    {errors.status.message}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {mutationError && (
@@ -262,17 +318,22 @@ export default function AddDoctorDialog({
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
               disabled={saving}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
 
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="w-full sm:w-auto"
+            >
               {saving ? "Saving..." : doctor ? "Save Changes" : "Add Doctor"}
             </Button>
           </DialogFooter>

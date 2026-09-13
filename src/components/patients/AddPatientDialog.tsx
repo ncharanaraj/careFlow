@@ -121,7 +121,7 @@ export default function AddPatientDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{patient ? "Edit Patient" : "Add Patient"}</DialogTitle>
           <DialogDescription>
@@ -144,7 +144,7 @@ export default function AddPatientDialog({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="age">Age</Label>
               <Input
@@ -164,7 +164,7 @@ export default function AddPatientDialog({
               <Select
                 value={gender}
                 onValueChange={(value) =>
-                  setValue("gender", value as string, {
+                  setValue("gender", (value ?? "") as string, {
                     shouldValidate: true,
                     shouldDirty: true,
                   })
@@ -203,7 +203,7 @@ export default function AddPatientDialog({
             <Select
               value={bloodGroup}
               onValueChange={(value) =>
-                setValue("bloodGroup", value as string, {
+                setValue("bloodGroup", (value ?? "") as string, {
                   shouldValidate: true,
                   shouldDirty: true,
                 })
@@ -237,17 +237,22 @@ export default function AddPatientDialog({
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={saving}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
 
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="w-full sm:w-auto"
+            >
               {saving ? "Saving..." : patient ? "Save Changes" : "Add Patient"}
             </Button>
           </div>

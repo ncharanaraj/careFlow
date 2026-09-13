@@ -15,6 +15,7 @@ import { fetchAppointmentData } from "@/store/appointmentsSlice";
 import { fetchDoctorData } from "@/store/doctorsSlice";
 import { fetchStaffData } from "@/store/staffSlice";
 import { fetchPrescriptions } from "@/store/prescriptionsSlice";
+import { fetchLabReports } from "@/store/labReportsSlice";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
@@ -38,17 +39,29 @@ export default function Dashboard() {
 
   const user = useSelector((state: RootState) => state.auth.user);
 
-  const { prescriptions } = useSelector(
-    (state: RootState) => state.prescriptions,
-  );
+  const {
+    prescriptions,
+    loading: prescriptionsLoading,
+    error: prescriptionsError,
+  } = useSelector((state: RootState) => state.prescriptions);
+
+  const {
+    labReports,
+    loading: labReportsLoading,
+    error: labReportsError,
+  } = useSelector((state: RootState) => state.labReports);
 
   useEffect(() => {
     dispatch(fetchPatients());
     dispatch(fetchAppointmentData());
     dispatch(fetchDoctorData());
     dispatch(fetchStaffData());
-    dispatch(fetchPrescriptions());
-  }, [dispatch]);
+    dispatch(fetchLabReports());
+
+    if (user?.role !== "Staff") {
+      dispatch(fetchPrescriptions());
+    }
+  }, [dispatch, user?.role]);
 
   const activeDoctors = doctors.filter(
     (doctor) => doctor.status === "Active",
@@ -57,6 +70,13 @@ export default function Dashboard() {
   const activeStaff = staff.filter(
     (member) => member.status === "Active",
   ).length;
+
+  const visibleLabReports =
+    user?.role === "Doctor"
+      ? labReports.filter(
+          (report) => String(report.doctorId) === String(user.doctorId),
+        )
+      : labReports;
 
   const visibleAppointments =
     user?.role === "Doctor"
@@ -87,6 +107,18 @@ export default function Dashboard() {
             String(prescription.doctorId) === String(user.doctorId),
         )
       : prescriptions;
+
+  const orderedLabReportsCount = visibleLabReports.filter(
+    (report) => report.status === "Ordered",
+  ).length;
+
+  const collectedLabReportsCount = visibleLabReports.filter(
+    (report) => report.status === "Sample Collected",
+  ).length;
+
+  const completedLabReportsCount = visibleLabReports.filter(
+    (report) => report.status === "Completed",
+  ).length;
 
   const stats = [
     {
@@ -185,7 +217,12 @@ export default function Dashboard() {
   const staffLoading = useSelector((state: RootState) => state.staff.loading);
 
   const dashboardLoading =
-    patientsLoading || appointmentsLoading || doctorsLoading || staffLoading;
+    patientsLoading ||
+    appointmentsLoading ||
+    doctorsLoading ||
+    staffLoading ||
+    labReportsLoading ||
+    (user?.role !== "Staff" && prescriptionsLoading);
 
   const patientsError = useSelector((state: RootState) => state.patients.error);
 
@@ -198,13 +235,23 @@ export default function Dashboard() {
   const staffError = useSelector((state: RootState) => state.staff.error);
 
   const dashboardError =
-    patientsError || appointmentsError || doctorsError || staffError;
+    patientsError ||
+    appointmentsError ||
+    doctorsError ||
+    staffError ||
+    labReportsError ||
+    (user?.role !== "Staff" ? prescriptionsError : null);
 
   const handleDashboardRetry = () => {
     dispatch(fetchPatients());
     dispatch(fetchAppointmentData());
     dispatch(fetchDoctorData());
     dispatch(fetchStaffData());
+    dispatch(fetchLabReports());
+
+    if (user?.role !== "Staff") {
+      dispatch(fetchPrescriptions());
+    }
   };
 
   if (dashboardLoading) {
@@ -305,7 +352,7 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Recent Patients */}
         <Card>
           <CardContent className="p-5">
@@ -408,6 +455,58 @@ export default function Dashboard() {
                 </div>
 
                 <Badge variant="destructive">Cancelled</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-5">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Lab Report Summary
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Current laboratory workflow overview.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
+                <div>
+                  <p className="text-sm text-slate-500">Ordered</p>
+
+                  <p className="mt-1 text-2xl font-semibold text-slate-900">
+                    {orderedLabReportsCount}
+                  </p>
+                </div>
+
+                <Badge variant="outline">Ordered</Badge>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
+                <div>
+                  <p className="text-sm text-slate-500">Sample Collected</p>
+
+                  <p className="mt-1 text-2xl font-semibold text-slate-900">
+                    {collectedLabReportsCount}
+                  </p>
+                </div>
+
+                <Badge variant="secondary">Sample Collected</Badge>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
+                <div>
+                  <p className="text-sm text-slate-500">Completed</p>
+
+                  <p className="mt-1 text-2xl font-semibold text-slate-900">
+                    {completedLabReportsCount}
+                  </p>
+                </div>
+
+                <Badge>Completed</Badge>
               </div>
             </div>
           </CardContent>

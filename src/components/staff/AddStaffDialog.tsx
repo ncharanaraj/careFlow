@@ -41,6 +41,8 @@ const staffSchema = z.object({
   email: z.email("Enter a valid email address"),
 
   joiningDate: z.string().min(1, "Joining date is required"),
+
+  status: z.enum(["Active", "Inactive"]),
 });
 
 export type StaffFormData = z.infer<typeof staffSchema>;
@@ -81,6 +83,7 @@ export default function AddStaffDialog({
       phone: "",
       email: "",
       joiningDate: "",
+      status: "Active",
     },
   });
 
@@ -93,6 +96,7 @@ export default function AddStaffDialog({
         phone: staff.phone,
         email: staff.email,
         joiningDate: staff.joiningDate,
+        status: staff.status,
       });
     }
 
@@ -104,6 +108,7 @@ export default function AddStaffDialog({
         phone: "",
         email: "",
         joiningDate: "",
+        status: "Active",
       });
     }
   }, [open, staff, reset]);
@@ -121,6 +126,11 @@ export default function AddStaffDialog({
   const joiningDate = useWatch({
     control,
     name: "joiningDate",
+  });
+
+  const status = useWatch({
+    control,
+    name: "status",
   });
 
   const onSubmit = async (data: StaffFormData) => {
@@ -154,7 +164,7 @@ export default function AddStaffDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{staff ? "Edit Staff" : "Add Staff"}</DialogTitle>
 
@@ -281,7 +291,7 @@ export default function AddStaffDialog({
             </div>
 
             {/* Joining Date */}
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <Label>Joining Date</Label>
 
               <Popover>
@@ -328,6 +338,52 @@ export default function AddStaffDialog({
                 </p>
               )}
             </div>
+
+            {staff && (
+              <div className="space-y-2">
+                <Label>Status</Label>
+
+                <Select
+                  items={[
+                    {
+                      label: "Active",
+                      value: "Active",
+                    },
+                    {
+                      label: "Inactive",
+                      value: "Inactive",
+                    },
+                  ]}
+                  value={status || "Active"}
+                  onValueChange={(value) =>
+                    setValue(
+                      "status",
+                      (value ?? "Active") as "Active" | "Inactive",
+                      {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      },
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {errors.status && (
+                  <p className="text-xs text-red-500">
+                    {errors.status.message}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {mutationError && (
@@ -336,17 +392,22 @@ export default function AddStaffDialog({
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={saving}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
 
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="w-full sm:w-auto"
+            >
               {saving ? "Saving..." : staff ? "Save Changes" : "Add Staff"}
             </Button>
           </DialogFooter>

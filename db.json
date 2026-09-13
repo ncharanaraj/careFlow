@@ -21,16 +21,6 @@
       "createdAt": "2026-09-08T09:00:00.000Z"
     },
     {
-      "name": "Sneha Rao",
-      "age": 55,
-      "gender": "Female",
-      "phone": "9876543213",
-      "bloodGroup": "B-",
-      "status": "Active",
-      "createdAt": "2026-09-07T09:00:00.000Z",
-      "id": "4"
-    },
-    {
       "id": "5",
       "name": "Vikram Singh",
       "age": 51,
@@ -69,6 +59,16 @@
       "status": "Active",
       "createdAt": "2026-09-11T06:59:19.920Z",
       "id": "xDd3TcrECHs"
+    },
+    {
+      "name": "Saroja N",
+      "age": 45,
+      "gender": "Female",
+      "phone": "7899240476",
+      "bloodGroup": "B+",
+      "status": "Active",
+      "createdAt": "2026-09-13T02:45:35.507Z",
+      "id": "kVluR9gV9NE"
     }
   ],
   "departments": [
@@ -99,6 +99,13 @@
       "status": "Active",
       "createdAt": "2026-09-11T05:45:03.728Z",
       "id": "O1BuuoVWc7I"
+    },
+    {
+      "name": "Dermatology",
+      "description": "Dermatologists who manage skin, hair, and nail disorders.",
+      "status": "Active",
+      "createdAt": "2026-09-13T02:51:20.651Z",
+      "id": "L1aSwxQ4yF8"
     }
   ],
   "doctors": [
@@ -125,17 +132,6 @@
       "createdAt": "2026-09-02T10:00:00.000Z"
     },
     {
-      "id": "doc-3",
-      "name": "Dr. Kiran Patel",
-      "departmentId": "dep-3",
-      "specialization": "General Physician",
-      "phone": "9876543212",
-      "email": "kiran.patel@careflow.com",
-      "experience": 5,
-      "status": "Active",
-      "createdAt": "2026-09-03T10:00:00.000Z"
-    },
-    {
       "name": "Dr. Swati N",
       "departmentId": "O1BuuoVWc7I",
       "specialization": "Pediatrition",
@@ -145,13 +141,24 @@
       "status": "Active",
       "createdAt": "2026-09-11T07:01:17.674Z",
       "id": "BhVHsdpTLiQ"
+    },
+    {
+      "name": "Dr. Dinesh Madival",
+      "departmentId": "L1aSwxQ4yF8",
+      "specialization": "Dermatologist",
+      "phone": "9876543216",
+      "email": "dinesh@careflow.com",
+      "experience": 8,
+      "status": "Active",
+      "createdAt": "2026-09-13T03:21:59.816Z",
+      "id": "oXfDk_PLjN4"
     }
   ],
   "appointments": [
     {
       "patientId": "5",
-      "doctorId": "doc-3",
-      "departmentId": "dep-3",
+      "doctorId": "doc-2",
+      "departmentId": "dep-2",
       "appointmentDate": "2026-09-17",
       "timeSlot": "11:00 AM",
       "status": "Cancelled",
@@ -217,6 +224,26 @@
       "status": "Completed",
       "createdAt": "2026-09-12T14:23:59.779Z",
       "id": "vP3kI9Qic5A"
+    },
+    {
+      "patientId": "kVluR9gV9NE",
+      "doctorId": "BhVHsdpTLiQ",
+      "departmentId": "O1BuuoVWc7I",
+      "appointmentDate": "2026-09-13",
+      "timeSlot": "11:00 AM",
+      "status": "Scheduled",
+      "createdAt": "2026-09-13T02:47:58.051Z",
+      "id": "vGm_n-aRQuI"
+    },
+    {
+      "patientId": "PE8ITNj-Tb4",
+      "doctorId": "oXfDk_PLjN4",
+      "departmentId": "L1aSwxQ4yF8",
+      "appointmentDate": "2026-09-13",
+      "timeSlot": "11:00 AM",
+      "status": "Scheduled",
+      "createdAt": "2026-09-13T03:22:14.200Z",
+      "id": "dWrFa5euhF0"
     }
   ],
   "staff": [
@@ -243,15 +270,15 @@
       "createdAt": "2026-09-02T08:00:00.000Z"
     },
     {
-      "id": "staff-3",
       "name": "Meera Joshi",
       "role": "Lab Technician",
       "departmentId": "dep-3",
       "phone": "9876500013",
       "email": "meera.joshi@careflow.com",
-      "joiningDate": "2023-11-20",
+      "joiningDate": "2026-09-10",
       "status": "Active",
-      "createdAt": "2026-09-03T08:00:00.000Z"
+      "createdAt": "2026-09-03T08:00:00.000Z",
+      "id": "staff-3"
     },
     {
       "name": "Dinesh Madival",
@@ -268,7 +295,7 @@
       "name": "Manoj V H",
       "role": "Receptionist",
       "departmentId": "dep-2",
-      "phone": "7899240475",
+      "phone": "7899240556",
       "email": "manoj@careflow.com",
       "joiningDate": "2026-09-08",
       "status": "Active",
@@ -503,6 +530,25 @@
       "notes": "",
       "orderedAt": "2026-09-12T18:55:54.274Z",
       "id": "r3LXQvG2O84"
+    },
+    {
+      "patientId": "6",
+      "appointmentId": "3uFjiZYa4YM",
+      "doctorId": "doc-1",
+      "status": "Ordered",
+      "tests": [
+        {
+          "id": "02462bcd-0b7a-4222-94ad-a586aaddeee9",
+          "testName": "RBC",
+          "category": "Blood Test",
+          "result": "",
+          "normalRange": "",
+          "unit": ""
+        }
+      ],
+      "notes": "",
+      "orderedAt": "2026-09-13T13:29:47.535Z",
+      "id": "ao14aTA9evI"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

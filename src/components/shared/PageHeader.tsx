@@ -13,7 +13,7 @@ export default function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
+      <div className="min-w-0">
         <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
 
         {description && (
@@ -21,7 +21,7 @@ export default function PageHeader({
         )}
       </div>
 
-      {action && <div>{action}</div>}
+      {action && <div className="w-full sm:w-auto">{action}</div>}
     </div>
   );
 }

@@ -46,6 +46,8 @@ import {
 } from "@/components/ui/table";
 import PageHeader from "@/components/shared/PageHeader";
 import { fetchAppointmentData } from "@/store/appointmentsSlice";
+import { fetchPrescriptions } from "@/store/prescriptionsSlice";
+import { fetchLabReports } from "@/store/labReportsSlice";
 
 export default function Patients() {
   const [search, setSearch] = useState("");
@@ -58,6 +60,9 @@ export default function Patients() {
   const [editOpen, setEditOpen] = useState(false);
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteBlockedMessage, setDeleteBlockedMessage] = useState<
+    string | null
+  >(null);
 
   const { patients, loading, error, saving, deleting, mutationError } =
     useSelector((state: RootState) => state.patients);
@@ -66,11 +71,21 @@ export default function Patients() {
     (state: RootState) => state.appointments,
   );
 
+  const prescriptions = useSelector(
+    (state: RootState) => state.prescriptions.prescriptions,
+  );
+
+  const labReports = useSelector(
+    (state: RootState) => state.labReports.labReports,
+  );
+
   const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
     dispatch(fetchPatients());
     dispatch(fetchAppointmentData());
+    dispatch(fetchPrescriptions());
+    dispatch(fetchLabReports());
   }, [dispatch]);
 
   const doctorPatientIds =
@@ -120,6 +135,12 @@ export default function Patients() {
     startIndex + patientsPerPage,
   );
 
+  const canAddPatient = hasPermission(user?.role, "patient:add");
+
+  const canEditPatient = hasPermission(user?.role, "patient:edit");
+
+  const canDeletePatient = hasPermission(user?.role, "patient:delete");
+
   // Handle adding a new patient
   const handlePatientAdded = async (data: {
     name: string;
@@ -128,6 +149,10 @@ export default function Patients() {
     phone: string;
     bloodGroup: string;
   }) => {
+    if (!canAddPatient) {
+      return;
+    }
+
     await dispatch(
       addPatient({
         name: data.name,
@@ -154,7 +179,12 @@ export default function Patients() {
 
   // Handle editing a patient
   const handleEditPatient = (patient: Patient) => {
+    if (!canEditPatient) {
+      return;
+    }
+
     dispatch(clearPatientMutationError());
+
     setPatientToEdit(patient);
     setEditOpen(true);
   };
@@ -167,7 +197,9 @@ export default function Patients() {
     phone: string;
     bloodGroup: string;
   }) => {
-    if (!patientToEdit) return;
+    if (!patientToEdit || !canEditPatient) {
+      return;
+    }
 
     await dispatch(
       editPatient({
@@ -183,20 +215,74 @@ export default function Patients() {
         },
       }),
     ).unwrap();
-
-    // setPatientToEdit(null);
-    // setEditOpen(false);
   };
 
   // Handle deleting a patient
   const handleDeletePatient = (patient: Patient) => {
+    if (!canDeletePatient) {
+      return;
+    }
+
     dispatch(clearPatientMutationError());
+
+    const linkedAppointments = appointments.filter(
+      (appointment) => String(appointment.patientId) === String(patient.id),
+    );
+
+    const linkedPrescriptions = prescriptions.filter(
+      (prescription) => String(prescription.patientId) === String(patient.id),
+    );
+
+    const linkedLabReports = labReports.filter(
+      (report) => String(report.patientId) === String(patient.id),
+    );
+
+    const dependencies: string[] = [];
+
+    if (linkedAppointments.length > 0) {
+      dependencies.push(
+        `${linkedAppointments.length} appointment${
+          linkedAppointments.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (linkedPrescriptions.length > 0) {
+      dependencies.push(
+        `${linkedPrescriptions.length} prescription${
+          linkedPrescriptions.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (linkedLabReports.length > 0) {
+      dependencies.push(
+        `${linkedLabReports.length} lab report${
+          linkedLabReports.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (dependencies.length > 0) {
+      setPatientToDelete(patient);
+
+      setDeleteBlockedMessage(
+        `${patient.name} cannot be deleted because this patient is linked to ${dependencies.join(
+          ", ",
+        )}.`,
+      );
+
+      return;
+    }
+
     setPatientToDelete(patient);
     setDeleteOpen(true);
   };
 
   const confirmDeletePatient = async () => {
-    if (!patientToDelete) return;
+    if (!patientToDelete || !canDeletePatient) {
+      return;
+    }
 
     try {
       await dispatch(removePatient(patientToDelete.id)).unwrap();
@@ -208,11 +294,12 @@ export default function Patients() {
     }
   };
 
-  const canAddPatient = hasPermission(user?.role, "patient:add");
-
-  const canEditPatient = hasPermission(user?.role, "patient:edit");
-
-  const canDeletePatient = hasPermission(user?.role, "patient:delete");
+  const handlePatientsRetry = () => {
+    dispatch(fetchPatients());
+    dispatch(fetchAppointmentData());
+    dispatch(fetchPrescriptions());
+    dispatch(fetchLabReports());
+  };
 
   return (
     <div className="space-y-6">
@@ -255,10 +342,7 @@ export default function Patients() {
           {loading ? (
             <LoadingState message="Loading patients..." />
           ) : error ? (
-            <ErrorState
-              message={error}
-              onRetry={() => dispatch(fetchPatients())}
-            />
+            <ErrorState message={error} onRetry={handlePatientsRetry} />
           ) : (
             <>
               <div className="overflow-x-auto">
@@ -351,14 +435,16 @@ export default function Patients() {
                           colSpan={7}
                           className="h-24 text-center text-slate-500"
                         >
-                          No patients found.
+                          {search
+                            ? "No patients match your search."
+                            : "No patients available yet."}
                         </TableCell>
                       </TableRow>
                     )}
                   </TableBody>
                 </Table>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t pt-4">
+              <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row items-center justify-center sm:justify-between">
                 <p className="text-sm text-slate-500">
                   Showing {filteredPatients.length === 0 ? 0 : startIndex + 1}–
                   {Math.min(
@@ -368,7 +454,7 @@ export default function Patients() {
                   of {filteredPatients.length}
                 </p>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -442,6 +528,37 @@ export default function Patients() {
               className="bg-red-600 hover:bg-red-700"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={Boolean(deleteBlockedMessage)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteBlockedMessage(null);
+            setPatientToDelete(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Patient Cannot Be Deleted</AlertDialogTitle>
+
+            <AlertDialogDescription>
+              {deleteBlockedMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setDeleteBlockedMessage(null);
+                setPatientToDelete(null);
+              }}
+            >
+              OK
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

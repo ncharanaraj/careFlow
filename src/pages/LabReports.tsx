@@ -94,10 +94,6 @@ export default function LabReports() {
 
   const doctors = useSelector((state: RootState) => state.doctors.doctors);
 
-  //   const appointments = useSelector(
-  //     (state: RootState) => state.appointments.appointments,
-  //   );
-
   const user = useSelector((state: RootState) => state.auth.user);
 
   const [search, setSearch] = useState("");
@@ -201,7 +197,7 @@ export default function LabReports() {
   };
 
   const handleSampleCollected = async (report: LabReport) => {
-    if (report.status !== "Ordered") {
+    if (!canCollectSample || report.status !== "Ordered") {
       return;
     }
 
@@ -230,7 +226,7 @@ export default function LabReports() {
   };
 
   const handleCompleteLabReport = (report: LabReport) => {
-    if (report.status !== "Sample Collected") {
+    if (!canCompleteLabReport || report.status !== "Sample Collected") {
       return;
     }
 
@@ -248,7 +244,25 @@ export default function LabReports() {
 
   const canDeleteLabReport = hasPermission(user?.role, "lab-report:delete");
 
+  const canAccessLabReport = (report: LabReport) => {
+    if (user?.role !== "Doctor") {
+      return true;
+    }
+
+    return String(report.doctorId) === String(user.doctorId);
+  };
+
   const handleEditLabReport = (report: LabReport) => {
+    if (
+      !canEditLabReport ||
+      !canAccessLabReport(report) ||
+      report.status !== "Ordered"
+    ) {
+      return;
+    }
+
+    dispatch(clearLabReportMutationError());
+
     setReportToEdit(report);
     setEditDialogOpen(true);
   };
@@ -256,6 +270,13 @@ export default function LabReports() {
   const handleDeleteClick = (report: LabReport) => {
     setReportToDelete(report);
     setDeleteDialogOpen(true);
+  };
+
+  const handleLabReportsRetry = () => {
+    dispatch(fetchLabReports());
+    dispatch(fetchPatients());
+    dispatch(fetchDoctorData());
+    dispatch(fetchAppointmentData());
   };
 
   return (
@@ -323,10 +344,7 @@ export default function LabReports() {
           {loading && <LoadingState message="Loading lab reports..." />}
 
           {!loading && error && (
-            <ErrorState
-              message={error}
-              onRetry={() => dispatch(fetchLabReports())}
-            />
+            <ErrorState message={error} onRetry={handleLabReportsRetry} />
           )}
 
           {!loading && !error && (
@@ -448,7 +466,9 @@ export default function LabReports() {
                           colSpan={6}
                           className="h-32 text-center text-slate-500"
                         >
-                          No lab reports found.
+                          {search || statusFilter !== "All"
+                            ? "No lab reports match your search or filters."
+                            : "No lab reports available yet."}
                         </TableCell>
                       </TableRow>
                     )}
@@ -457,7 +477,7 @@ export default function LabReports() {
               </div>
 
               {filteredLabReports.length > 0 && (
-                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row items-center justify-center sm:justify-between">
                   <p className="text-sm text-slate-500">
                     Showing {startIndex + 1}–
                     {Math.min(

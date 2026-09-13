@@ -10,6 +10,9 @@ import {
   clearDepartmentMutationError,
   addDepartment,
 } from "@/store/departmentsSlice";
+import { fetchDoctorData } from "@/store/doctorsSlice";
+import { fetchStaffData } from "@/store/staffSlice";
+import { fetchAppointmentData } from "@/store/appointmentsSlice";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,10 +82,15 @@ export default function Departments() {
     (state: RootState) => state.appointments.appointments,
   );
 
+  const staff = useSelector((state: RootState) => state.staff.staff);
+
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     dispatch(fetchDepartments());
+    dispatch(fetchDoctorData());
+    dispatch(fetchStaffData());
+    dispatch(fetchAppointmentData());
   }, [dispatch]);
 
   const filteredDepartments = departments.filter((department) => {
@@ -146,17 +154,72 @@ export default function Departments() {
     setDeleteOpen(true);
   };
 
-  const isDepartmentInUse = (department: Department) => {
-    const usedByDoctor = doctors.some(
+  const getDepartmentDependencies = (department: Department) => {
+    const linkedDoctors = doctors.filter(
       (doctor) => String(doctor.departmentId) === String(department.id),
     );
 
-    const usedByAppointment = appointments.some(
+    const linkedStaff = staff.filter(
+      (staffMember) =>
+        String(staffMember.departmentId) === String(department.id),
+    );
+
+    const linkedAppointments = appointments.filter(
       (appointment) =>
         String(appointment.departmentId) === String(department.id),
     );
 
-    return usedByDoctor || usedByAppointment;
+    return {
+      linkedDoctors,
+      linkedStaff,
+      linkedAppointments,
+    };
+  };
+
+  const isDepartmentInUse = (department: Department) => {
+    const { linkedDoctors, linkedStaff, linkedAppointments } =
+      getDepartmentDependencies(department);
+
+    return (
+      linkedDoctors.length > 0 ||
+      linkedStaff.length > 0 ||
+      linkedAppointments.length > 0
+    );
+  };
+
+  const getDepartmentDependencyMessage = (department: Department) => {
+    const { linkedDoctors, linkedStaff, linkedAppointments } =
+      getDepartmentDependencies(department);
+
+    const dependencies: string[] = [];
+
+    if (linkedDoctors.length > 0) {
+      dependencies.push(
+        `${linkedDoctors.length} doctor${
+          linkedDoctors.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (linkedStaff.length > 0) {
+      dependencies.push(
+        `${linkedStaff.length} staff member${
+          linkedStaff.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    if (linkedAppointments.length > 0) {
+      dependencies.push(
+        `${linkedAppointments.length} appointment${
+          linkedAppointments.length !== 1 ? "s" : ""
+        }`,
+      );
+    }
+
+    return `${department.name} cannot be deleted because it is linked to ${dependencies.join(
+      ", ",
+    )}. Remove or reassign those relationships before deleting this department.`;
   };
 
   const handleDeleteDepartment = async () => {
@@ -187,6 +250,13 @@ export default function Departments() {
     startIndex,
     startIndex + departmentsPerPage,
   );
+
+  const handleDepartmentsRetry = () => {
+    dispatch(fetchDepartments());
+    dispatch(fetchDoctorData());
+    dispatch(fetchStaffData());
+    dispatch(fetchAppointmentData());
+  };
 
   return (
     <div className="space-y-6">
@@ -227,10 +297,7 @@ export default function Departments() {
           {loading && <LoadingState message="Loading departments..." />}
 
           {!loading && error && (
-            <ErrorState
-              message={error}
-              onRetry={() => dispatch(fetchDepartments())}
-            />
+            <ErrorState message={error} onRetry={handleDepartmentsRetry} />
           )}
 
           {/* Table */}
@@ -326,7 +393,9 @@ export default function Departments() {
                           colSpan={5}
                           className="h-32 text-center text-slate-500"
                         >
-                          No departments found.
+                          {search
+                            ? "No departments match your search."
+                            : "No departments available yet."}
                         </TableCell>
                       </TableRow>
                     )}
@@ -334,7 +403,7 @@ export default function Departments() {
                 </Table>
               </div>
               {filteredDepartments.length > 0 && (
-                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row items-center justify-center sm:justify-between">
                   <p className="text-sm text-slate-500">
                     Showing {startIndex + 1}–
                     {Math.min(
@@ -404,8 +473,10 @@ export default function Departments() {
 
             <AlertDialogDescription>
               {departmentToDelete && isDepartmentInUse(departmentToDelete)
-                ? `${departmentToDelete.name} is currently being used by doctors or appointments. Remove those relationships before deleting this department.`
-                : `This will permanently delete ${departmentToDelete?.name ?? "this department"}. This action cannot be undone.`}
+                ? getDepartmentDependencyMessage(departmentToDelete)
+                : `This will permanently delete ${
+                    departmentToDelete?.name ?? "this department"
+                  }. This action cannot be undone.`}
               {mutationError && (
                 <p className="mt-3 text-sm text-red-600">{mutationError}</p>
               )}

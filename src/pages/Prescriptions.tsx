@@ -111,6 +111,28 @@ export default function Prescriptions() {
         )
       : prescriptions;
 
+  const isDoctorOwnedAppointment = (
+    appointmentId: string | number,
+    patientId: string | number,
+  ) => {
+    if (user?.role !== "Doctor") {
+      return true;
+    }
+
+    const appointment = appointments.find(
+      (appointment) => String(appointment.id) === String(appointmentId),
+    );
+
+    if (!appointment) {
+      return false;
+    }
+
+    return (
+      String(appointment.doctorId) === String(user.doctorId) &&
+      String(appointment.patientId) === String(patientId)
+    );
+  };
+
   const filteredPrescriptions = visiblePrescriptions.filter((prescription) => {
     const searchTerm = search.trim().toLowerCase();
 
@@ -167,6 +189,16 @@ export default function Prescriptions() {
   };
 
   const handlePrescriptionAdded = async (data: PrescriptionFormData) => {
+    if (
+      user?.role === "Doctor" &&
+      (!isDoctorOwnedAppointment(data.appointmentId, data.patientId) ||
+        String(data.doctorId) !== String(user.doctorId))
+    ) {
+      throw new Error(
+        "You can only create prescriptions for your own appointments.",
+      );
+    }
+
     const alreadyExists = prescriptions.some(
       (prescription) =>
         String(prescription.appointmentId) === String(data.appointmentId),
@@ -198,6 +230,13 @@ export default function Prescriptions() {
   };
 
   const handleEditPrescription = (prescription: Prescription) => {
+    if (
+      user?.role === "Doctor" &&
+      String(prescription.doctorId) !== String(user.doctorId)
+    ) {
+      return;
+    }
+
     dispatch(clearPrescriptionMutationError());
 
     setPrescriptionToEdit(prescription);
@@ -206,6 +245,17 @@ export default function Prescriptions() {
 
   const handlePrescriptionUpdated = async (data: PrescriptionFormData) => {
     if (!prescriptionToEdit) return;
+
+    if (
+      user?.role === "Doctor" &&
+      (String(prescriptionToEdit.doctorId) !== String(user.doctorId) ||
+        !isDoctorOwnedAppointment(data.appointmentId, data.patientId) ||
+        String(data.doctorId) !== String(user.doctorId))
+    ) {
+      throw new Error(
+        "You can only edit prescriptions for your own appointments.",
+      );
+    }
 
     const duplicateAppointment = prescriptions.some(
       (prescription) =>
@@ -221,9 +271,9 @@ export default function Prescriptions() {
       editPrescription({
         id: prescriptionToEdit.id,
         prescription: {
-          patientId: data.patientId,
-          appointmentId: data.appointmentId,
-          doctorId: data.doctorId,
+          patientId: prescriptionToEdit.patientId,
+          appointmentId: prescriptionToEdit.appointmentId,
+          doctorId: prescriptionToEdit.doctorId,
           diagnosis: data.diagnosis,
 
           medicines: data.medicines.map((medicine) => ({
@@ -252,6 +302,13 @@ export default function Prescriptions() {
     user?.role,
     "prescription:delete",
   );
+
+  const handlePrescriptionsRetry = () => {
+    dispatch(fetchPrescriptions());
+    dispatch(fetchPatients());
+    dispatch(fetchDoctorData());
+    dispatch(fetchAppointmentData());
+  };
 
   return (
     <div className="space-y-6">
@@ -293,10 +350,7 @@ export default function Prescriptions() {
           {loading && <LoadingState message="Loading prescriptions..." />}
 
           {!loading && error && (
-            <ErrorState
-              message={error}
-              onRetry={() => dispatch(fetchPrescriptions())}
-            />
+            <ErrorState message={error} onRetry={handlePrescriptionsRetry} />
           )}
 
           {!loading && !error && (
@@ -391,7 +445,9 @@ export default function Prescriptions() {
                           colSpan={6}
                           className="h-32 text-center text-slate-500"
                         >
-                          No prescriptions found.
+                          {search
+                            ? "No prescriptions match your search."
+                            : "No prescriptions available yet."}
                         </TableCell>
                       </TableRow>
                     )}
@@ -400,7 +456,7 @@ export default function Prescriptions() {
               </div>
 
               {filteredPrescriptions.length > 0 && (
-                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row items-center justify-center sm:justify-between">
                   <p className="text-sm text-slate-500">
                     Showing {startIndex + 1}–
                     {Math.min(
