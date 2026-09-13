@@ -4,6 +4,14 @@ CareFlow is a role-based hospital operations management system built with React 
 
 The project focuses on real-world frontend engineering practices such as role-based access control, workflow management, data integrity, reusable components, responsive design, form validation, state management, testing, and API integration.
 
+## Live Demo
+
+**Live Application:** https://care-flow-zeta.vercel.app/
+
+**API:** https://careflow-9ob4.onrender.com/
+
+> The API is hosted on Render. On the free hosting tier, the first request may take a little longer if the service has been inactive.
+
 ## Features
 
 ### Dashboard
@@ -252,7 +260,7 @@ Current test suite:
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/ncharanaraj/careFlow.git
 cd careFlow
 ```
 
